@@ -40,6 +40,44 @@ Date : 2026-10-11. Statut : validé localement (M0), revue responsable requise p
 - **Aucune correction de fichier requise** : les documents convergent déjà vers cette
   lecture une fois la conditionnalité explicitée. Aucune licence inventée.
 
+## Addendum d'audit OPDLM–FLARE (2026-10-11, sans commit)
+
+Audit mené sans implémentation M1, sans entraînement, sans copie de code dans `src/`
+(checkouts en lecture seule sous `_artefacts/oracles/`, non versionnés) :
+FLARE `6ca547a` (2026-08-17, vérifié `git log`) et OPDLM `3bb8bf6` (2026-06-09, vérifié).
+
+- **Licences vérifiées sur fichiers réels** : FLARE `LICENSE` = PolyForm Noncommercial
+  1.0.0 (`Required Notice: Copyright 2026 Yuchen Zhu and HybridDiffusion contributors`,
+  amont TorchTitan BSD-3-Clause) — usage, modification et distribution permis pour tout
+  usage non commercial. OPDLM `LICENSE` = MIT (© 2026 DIVE Lab, Texas A&M).
+  Ceci n'est pas un avis juridique : LIC-1 reste ouverte et porte désormais sur un seul
+  point : le caractère non commercial de l'usage prévu de Jainius, à trancher par le
+  responsable. Aucun vendoring avant cette décision.
+- **M0-D2 est une précaution provisoire, pas un renoncement** : le cahier des charges
+  impose l'intégration FLARE (référence d'exécution §1.2/§3.2, réutilisation §7.2,
+  serving natif F-010) et `AGENTS.md` §4.2 la conditionne sans l'interdire. La règle
+  « aucun code copié » vaut pour M0 ; le chemin conforme de réutilisation est :
+  checkout lecture seule (fait) → décision LIC-1 → gates de compatibilité H-02
+  (T-GDN-03), H-07/H-11 (T-SG-01) → vendoring sous PolyForm NC si usage non commercial
+  confirmé, sinon réimplémentation propre. Aucun moteur parallèle ni kernel contournement
+  (option C rejetée, ADR-001/ADR-008 maintenus).
+- **Ancres de compatibilité établies (structurelles, exécution restant À VÉRIFIER)** :
+  flavor FLARE `0.8B` (`torchtitan/models/qwen3_5/__init__.py:67-87`) identique au
+  `config.json` source (24 couches, dim 1024, 8/2 têtes, GDN 16/16×128, conv 4,
+  vocab 248320, tying, rope θ 1e7/partiel 0.25) ; auto-upgrade d'architecture du fork
+  (`eval/sglang/srt/configs/model_config.py:156-167`) ; chargement tolérant
+  (`eval/sglang/srt/models/qwen3_5.py:1081-1086`, ignore mtp/visual) ; sémantique
+  denoise-sans-écriture / commit-causal (`low_confidence_shift_hybrid_diffusion.py:91-117`,
+  `gdn_dllm_backend.py:764-876`) conforme à C-03 ; SGLang amont sans Qwen3.5 dLLM
+  (docs publiques 2026-10-11 : LLaDA2.0, SDAR) → fork requis (D-11 confirmé).
+- **Précisions reversées au cahier technique (sans réécriture)** : H-08 résolue —
+  confiance = `sampled_token_prob` (`OPDLM/sample/bd3lm_rl_rollout.py:209-211`) ;
+  OPDLM entièrement attention pure (KV-cache incrémental, masque additif 4D,
+  `rl_sdar.py:318-357,513-557`) → D-04 EXPÉRIMENTAL confirmé, adaptation GDN requise ;
+  curriculum yaml `start 100 / end 2000 / ramp 20 / cos`, `end 4000` via lanceurs
+  (précise §10.6/§11.3, pas de contradiction) ; `one_state_per_block=True` dans tous
+  les lanceurs ; `top_k_logits=16` réservé 4B/8B.
+
 ## M0-D3 — `.gitignore` : couverture secrets et artefacts
 
 - **Correction appliquée** : `.gitignore` passé de (`.env`, `_artefacts/*`) à
