@@ -25,7 +25,7 @@ Les noms de composants `JAI-*` du cahier des charges (§4.1) sont conservés. Si
 | D-03 | **Les dépôts FLARE et OPDLM servent d'oracles numériques et de références d'architecture, pas de dépendances.** Jainius écrit son propre chemin de référence en PyTorch. | DÉCISION | FLARE est sous **PolyForm Noncommercial 1.0.0**. OPDLM ne supporte pas l'hybride (§3.3). Un chemin de référence correct est exigé (cahier §4.2). | Gate LIC-1 (§20) validée en faveur du vendoring |
 | D-04 | Méthode de conversion : OPDLM tel qu'implémenté dans le dépôt officiel. La transposition à Qwen3.5 hybride est **EXPÉRIMENTALE**. | CONFIRMÉE (méthode) / EXPÉRIMENTAL (hybride) | Aucune publication ni code ne valide OPDLM sur backbone hybride. | E1–E3 négatives |
 | D-05 | Entraînement en deux flux `[x0 \| xt]`. Masque softmax et sémantique GDN repris de FLARE (masque lu dans le code). | CONFIRMÉE (masque) / HYPOTHÈSE (GDN, H-02) | Le code OPDLM utilise aussi une séquence étendue `[prompt; x0; xt]`. | Test d'équivalence échoué |
-| D-06 | Convention de logits : commutateur `logit_convention ∈ {current, shifted}`. Défaut provisoire : `shifted` (Dream-style, FLARE). Tranché par l'expérience E1. | DÉCISION provisoire / EXPÉRIMENTAL | Seule convention disposant d'un chemin hybride démontré de bout en bout (entraînement + serving). OPDLM utilise `current`. | E1 |
+| D-06 | Convention de logits : commutateur `logit_convention ∈ {current, shifted}`. Défaut de référence : `current` (fidèle à OPDLM). `shifted` (Dream-style, FLARE) est une variante expérimentale isolée, adoptée seulement si l'expérience E1 la valide. | DÉCISION (M0) / EXPÉRIMENTAL pour `shifted` | `current` est le seul chemin fidèle à OPDLM sans H-01 résolue (§10.3). `shifted` est la seule convention disposant d'un chemin hybride démontré de bout en bout (entraînement + serving FLARE), mais sa cible KL n'est pas établie pour OPDLM. Conforme à AGENTS.md §4.3. | E1 |
 | D-07 | Perte OPDLM : KL(p_enseignant ‖ p_étudiant), moyenne par ligne sur les positions masquées de la réponse, puis moyenne sur le batch. Vocabulaire complet par morceaux. Top-16 en repli mémoire. | CONFIRMÉE (code OPDLM) | §10.3. Le vocabulaire Qwen3.5 (248 320) est 1,6× celui de Qwen3. | — |
 | D-08 | Sélection d'états : un tour de débruitage tiré par bloc (`one_state_per_block=True`, lanceurs officiels). L'Algorithme 1 du papier (un état par trajectoire) est une variante. | CONFIRMÉE (écart papier/code) | §4.2, I-03. | E2 |
 | D-09 | Rollouts par un décodeur de référence PyTorch avec gestion explicite des états récurrents. Le moteur SGLang n'est utilisé qu'après profilage. | DÉCISION | JetEngine d'OPDLM ne supporte pas GDN. Les rollouts dominent le coût dans les méthodes on-policy (NPD : 82 %). | Profil M2 |
@@ -340,7 +340,7 @@ Conventions : `B` batch, `L` longueur de séquence, `Lr` longueur de réponse, `
 @dataclass(frozen=True)
 class DiffusionSpec:
     block_size: int = 4                        # taille logique B (cahier §6.3)
-    logit_convention: Literal["current", "shifted"] = "shifted"
+    logit_convention: Literal["current", "shifted"] = "current"   # référence OPDLM (D-06) ; "shifted" = variante expérimentale isolée, cf. E1
     mask_token_id: int = 248077                # valeur FLARE ; à valider (T-TOK-01)
     pad_token_id: int = 248044
     causal_x0: bool = True                     # requis pour AR-Trust et la perte clean
@@ -555,7 +555,7 @@ Jainius fixe `causal_x0=True`, `causal_xt=False` (requis par `ar_loss_weight > 0
 
 **Questions ouvertes (bloquantes pour E1)**
 - **H-01** : sous `shifted`, la ligne `xt` masque des positions *j* dont le logit prédit *j+1*. Quelles positions reçoivent une cible de l'enseignant, et la cible conditionne-t-elle sur `x0_j` que l'étudiant ne voit pas ? Le code FLARE fixe la règle pour son entraînement CE (`diff_labels[~masked_indices] = −100`). La règle pour une cible KL doit être choisie puis testée par E1. Jusqu'à E1, **`current` est le seul chemin fidèle à OPDLM**.
-- Conséquence pour D-06 : le défaut `shifted` n'est retenu que si E1 le valide. En cas de blocage de H-01, le défaut bascule sur `current`.
+- Conséquence pour D-06 : le défaut de référence est `current`. `shifted` n'est adopté que si E1 le valide (H-01 résolue **et** composite dev ≥ `current` − 1 écart-type inter-seeds **et** chemin serving existant, cf. §13.6). Aucune bascule silencieuse entre conventions.
 
 ### 10.4 Tirage du masque d'entraînement FLARE (option, objectif FLARE seul)
 
