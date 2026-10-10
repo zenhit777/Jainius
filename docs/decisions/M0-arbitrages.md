@@ -1,6 +1,6 @@
 # Registre des décisions — M0 (arbitrages documentaires)
 
-Date : 2026-10-11. Statut : validé localement (M0), revue responsable requise pour LIC-1 et E1.
+Date : 2026-10-11. Statut : LIC-1 tranchée (usage privé non commercial, § ci-dessous) ; E1 reste ouverte.
 
 ## M0-D1 — Convention de logits : `current` = référence, `shifted` = variante isolée
 
@@ -85,3 +85,29 @@ FLARE `6ca547a` (2026-08-17, vérifié `git log`) et OPDLM `3bb8bf6` (2026-06-09
 - **Vérifié** : `.env` (vide, 0 variable) et `_artefacts/` non suivis par Git ;
   aucun fichier déjà versionné n'est concerné ; l'exclusion n'a donc aucun effet
   rétroactif à traiter.
+
+## Décision LIC-1 (2026-10-11) — usage privé non commercial, TRANCHÉE
+
+- **Déclaration du responsable** : Jainius est destiné à un usage personnel et privé,
+  sans objectif commercial ni application commerciale anticipée. Consignée le
+  2026-10-11 via le prompt de reprise ; aucune pièce commerciale n'existe dans le dépôt.
+- **Termes vérifiés** (fichier réel `_artefacts/oracles/FLARE/LICENSE`, lu à l'audit) :
+  PolyForm Noncommercial 1.0.0 — usage, modification et distribution permis pour tout
+  usage non commercial ; l'usage personnel pour la recherche et l'expérimentation est
+  un usage permis ; obligation de fournir les termes et la mention
+  `Required Notice: Copyright 2026 Yuchen Zhu and HybridDiffusion contributors` à
+  quiconque reçoit une copie ; composants amont TorchTitan sous BSD-3-Clause (conservée).
+  Ceci n'est pas un avis juridique.
+- **Autorisé par cette décision** : utilisation locale privée, modification et stockage
+  local du code FLARE (kernels GDN two-stream, fork SGLang) et comparaison-oracle, dans
+  la limite exacte ci-dessus. Toute copie dans le dépôt versionné doit conserver
+  `LICENSE` + `NOTICE` dans le répertoire concerné et rester identifiée comme
+  PolyForm NC (le dépôt Jainius n'a pas de fichier de licence propre à ce jour).
+- **Non autorisé / non démontré** : aucun usage commercial ; la compatibilité technique
+  n'est pas démontrée par cette décision (gates H-02/H-07/H-11 inchangées) ; OPDLM reste
+  sous MIT (© 2026 DIVE Lab, Texas A&M) — conserver sa notice en cas de réutilisation.
+- **Ambiguïté résiduelle documentée** : tout partage au-delà de l'usage privé
+  (publication du dépôt avec code vendoré, diffusion d'un checkpoint dérivé) est une
+  distribution au sens de la licence : exigerait termes + notices jointes et
+  réexamen préalable. Réutilisation limitée en conséquence à l'usage privé local
+  jusqu'à nouvel arbitrage explicite.
