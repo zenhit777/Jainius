@@ -3,4 +3,6 @@
 !.env.example
 _artefacts/
 __pycache__/
+*.pyc
+*.pyo
 .pytest_cache/

@@ -97,6 +97,15 @@ class Teacher:
         return self.hidden(x0).roll(1, 1)
 
     @torch.no_grad()
+    def teacher_logits_for_loss(self, lm_head, x0: torch.Tensor) -> torch.Tensor:
+        """Logits enseignant FULL [B, L, V] alignés `current`, consommés par
+        la perte (`train_step` ET test de régression appellent CETTE
+        fonction — tout décalage divergent échoue au test). Équivaut à
+        `logprobs_simple` avant log_softmax (mêmes ops, même ordre)."""
+        self.model.eval()
+        return lm_head(self.hidden_for_loss(x0))
+
+    @torch.no_grad()
     def logprobs_simple(
         self, x0: torch.Tensor, block_size: int = 4
     ) -> torch.Tensor:

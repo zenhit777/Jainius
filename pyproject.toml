@@ -1,0 +1,10 @@
+[project]
+name = "jainius"
+version = "0.1.0"
+description = "Conversion AR vers diffusion par blocs (Qwen3.5 hybride, OPDLM + FLARE)"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

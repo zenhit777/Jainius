@@ -68,6 +68,8 @@ def test_smoke_wiring(smoke_rep):
         v == v and abs(v) != float("inf") for v in rep["losses"]
     )
     assert all(rep["params_changed"]) and all(rep["grads_finite"])
+    assert len(rep["grad_norms"]) == 5 and all(
+        g == g and abs(g) != float("inf") for g in rep["grad_norms"])
     # Isolation inter-rollouts vérifiée DANS run_smoke (poids identiques).
 
 
@@ -81,6 +83,9 @@ def test_smoke_resume(smoke_rep):
                          masters=optim.masters)
     assert manifest["step"] == 1
     assert manifest["code_sha"] and "has_masters" in manifest
+    budget = manifest.get("budget", {})
+    assert budget.get("curriculum_step") == 1, "curriculum non persisté"
+    assert budget.get("updates") == 2, "compteurs non persistés"
     assert param_fingerprint(student.model) == rep["saved_fp"], (
         "reprise ≠ état sauvegardé"
     )

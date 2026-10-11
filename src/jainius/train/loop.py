@@ -26,6 +26,7 @@ from jainius.decode.rollout import rollout
 from jainius.decode.sampler import SamplerSpec
 from jainius.distill.curriculum import rollout_length
 from jainius.distill.loss import kl_teacher_to_student
+from jainius.distill.targets import compute_teacher_targets
 from jainius.model.arch import TwoStreamBatch
 from jainius.train.master import MasterOptimizer
 
@@ -80,7 +81,8 @@ def param_fingerprint(model) -> str:
     return digest.hexdigest()
 
 
-def train_step(student, teacher, optim, prompt_ids_list, trajs) -> float:
+def train_step(student, teacher, optim, prompt_ids_list, trajs,
+               stats: dict | None = None) -> float:
     """Un pas : 16 lignes (1 trajectoire ⇒ 1 ligne), KL moyenne, step.
 
     Alignement `current` (OPDLM `rl_sdar.py:1266-1272,1344-1348`) :
@@ -92,6 +94,8 @@ def train_step(student, teacher, optim, prompt_ids_list, trajs) -> float:
     (échantillonnage du jeton *i* depuis `logits[i]`). Début de séquence :
     position 0 = déchet recyclé, jamais supervisée. Supervisées : lignes
     réponse masquées-en-xt uniquement (`:1425-1428`).
+    Clipping de norme 1.0 (OPDLM `max_grad_norm`, cahier) avant le pas ;
+    norme pré-clip journalisée dans `stats["grad_norm"]` si fourni.
     """
     device = next(student.model.parameters()).device
     mask_id = student.spec.mask_token_id
@@ -106,12 +110,22 @@ def train_step(student, teacher, optim, prompt_ids_list, trajs) -> float:
         h_s = student.forward_two_stream(
             TwoStreamBatch(x0=x0, xt=xt, sup_mask=resp)
         )
+        # Fonction UNIQUE des cibles (A1/B1 non miroir) : aussi appelée par
+        # le test de régression — toute divergence du chemin échoue au test.
+        # `output_hidden_states=True` OBLIGATOIRE : sans lui, HF renvoie
+        # `hidden_states=None` et `hidden_states[-1]` lève TypeError
+        # (régression corrigée, verrouillée par test_smoke + test_target_alignment).
         with torch.no_grad():
-            h_t = teacher.hidden_for_loss(x0)
+            tlog = compute_teacher_targets(
+                x0,
+                lambda ids: teacher.model(
+                    ids, output_hidden_states=True).hidden_states[-1],
+                teacher.model.lm_head,
+            )
+            tlog = tlog.reshape(-1, tlog.shape[-1])  # [B*L, V] pour la perte
         out = kl_teacher_to_student(
             h_s.h_xt, lambda h: student.model.lm_head(h),
-            h_t, lambda h: teacher.model.lm_head(h),
-            resp, chunk_tokens=1024,
+            None, None, resp, chunk_tokens=1024, teacher_logits=tlog,
         )
         assert out.n_supervised == len(traj.x0)
         losses.append(out.loss)
@@ -122,6 +136,10 @@ def train_step(student, teacher, optim, prompt_ids_list, trajs) -> float:
         p.grad is None or bool(torch.isfinite(p.grad).all())
         for p in student.model.parameters()
     ), "gradients non finis"
+    params = [p for p in student.model.parameters() if p.grad is not None]
+    grad_norm = float(torch.nn.utils.clip_grad_norm_(params, 1.0).item())
+    if stats is not None:
+        stats["grad_norm"] = grad_norm
     optim.step()
     return float(loss.item())
 
@@ -218,10 +236,14 @@ def run_smoke(student, teacher, tokenizer, cfg: SmokeConfig, ckpt_dir) -> dict:
         # --- pas d'entraînement (factorisé, réutilisé par le test reprise) ---
         t0 = time.time()
         fp_before = param_fingerprint(student.model)
-        loss_value = train_step(student, teacher, optim, prompt_ids_list, trajs)
+        step_stats: dict = {}
+        loss_value = train_step(student, teacher, optim, prompt_ids_list,
+                                trajs, stats=step_stats)
         rep["student_train_fw"] += len(prompt_ids_list)
         rep["teacher_fw"] += len(prompt_ids_list)
         rep["grads_finite"].append(True)  # garanti par train_step (assert)
+        assert step_stats["grad_norm"] == step_stats["grad_norm"]  # fini
+        rep.setdefault("grad_norms", []).append(step_stats["grad_norm"])
         rep["updates"] += 1
         rep["losses"].append(loss_value)
         changed = param_fingerprint(student.model) != fp_before

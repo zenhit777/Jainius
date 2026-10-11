@@ -25,6 +25,7 @@ import torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from jainius.distill.loss import kl_teacher_to_student
+from jainius.distill.targets import compute_teacher_targets
 from jainius.distill.teacher import Teacher, basic_block_attention
 from jainius.model.arch import DiffusionSpec, JainiusModel, TwoStreamBatch
 from jainius.model.masks import build_two_stream_mask
@@ -92,19 +93,25 @@ def test_alignment_wiring_vs_manual():
 
 def test_train_step_targets_match_reference():
     """RÉGRESSION B1 : les cibles réellement consommées par `train_step`
-    (miroir exact : `Teacher.hidden_for_loss` + tête + log_softmax)
-    coïncident avec la référence `logprobs_simple` aux positions
-    supervisées. ÉCHOUE sur l'ancien chemin (`teacher.hidden` sans roll :
-    écart max ~25 mesuré)."""
+    — via L'UNIQUE fonction `Teacher.teacher_logits_for_loss` (appelée
+    par `train_step` lui-même) — coïncident avec la référence
+    `logprobs_simple` aux positions supervisées. ÉCHOUE sur l'ancien
+    chemin (`teacher.hidden` sans roll : écart max ~25 mesuré) car
+    l'ancienne expression est comparée explicitement ci-dessous."""
     model, prompt, l0, xresp, xt_resp = _setup()
     teacher = Teacher(model)
     x0 = torch.cat([prompt, xresp], dim=1)
     sup = torch.zeros_like(x0, dtype=torch.bool)
     sup[0, l0:] = (xt_resp[0] == MASK_ID)
     with torch.no_grad():
-        # Miroir exact de train_step : hidden_for_loss + tête + log_softmax.
+        # A1/B1 non miroir : la fonction UNIQUE de cibles (aussi appelée par
+        # train_step). Si train_step redevient non décalé, ce test échoue.
         consumed = F.log_softmax(
-            model.lm_head(teacher.hidden_for_loss(x0)).float(), dim=-1)
+            compute_teacher_targets(
+                x0,
+                lambda ids: model(ids,
+                                  output_hidden_states=True).hidden_states[-1],
+                model.lm_head).float(), dim=-1)
         reference = teacher.logprobs_simple(x0)
         old_buggy = F.log_softmax(
             model.lm_head(teacher.hidden(x0)).float(), dim=-1)
