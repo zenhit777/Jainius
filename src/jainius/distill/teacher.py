@@ -82,6 +82,21 @@ class Teacher:
         return self.model(input_ids, output_hidden_states=True).hidden_states[-1]
 
     @torch.no_grad()
+    def hidden_for_loss(self, x0: torch.Tensor) -> torch.Tensor:
+        """Hidden enseignant aligné `current`, consommé par la perte KL.
+
+        Convention (OPDLM `rl_sdar.py:1344-1348`, `student_arm_shift=False`) :
+        la position supervisée *i* porte la distribution qui prédit le
+        jeton *i*. Le head AR brut prédit le jeton *i+1* à la position *i*,
+        d'où le décalage `roll(1)` — bit-exact vs décalage des logits
+        (tête linéaire par position). Début de séquence : la position 0
+        reçoit le dernier hidden (déchet) ; elle n'est jamais supervisée
+        car `sup_mask` ne couvre que la réponse (prompt non vide).
+        Contexte : préfixe causal de la séquence terminale (H-03).
+        """
+        return self.hidden(x0).roll(1, 1)
+
+    @torch.no_grad()
     def logprobs_simple(
         self, x0: torch.Tensor, block_size: int = 4
     ) -> torch.Tensor:

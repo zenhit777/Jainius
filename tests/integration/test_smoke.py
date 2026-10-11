@@ -22,6 +22,7 @@ from jainius.distill.teacher import Teacher
 from jainius.model.arch import DiffusionSpec, JainiusModel
 from jainius.train.checkpoint import load_ckpt
 from jainius.train.loop import SmokeConfig, param_fingerprint, run_smoke, train_step
+from jainius.train.master import MasterOptimizer
 
 MODEL_ID = "Qwen/Qwen3.5-0.8B"
 CFG = SmokeConfig()
@@ -73,11 +74,13 @@ def test_smoke_wiring(smoke_rep):
 def test_smoke_resume(smoke_rep):
     rep = smoke_rep
     tok, student, teacher = _load_pair()
-    optim = torch.optim.AdamW(student.model.parameters(), lr=CFG.lr)
+    optim = MasterOptimizer(student.model, lr=CFG.lr)
     student.model.train()
-    manifest = load_ckpt(rep["saved"]["dir"], student.model, optim,
-                         {"smoke": True, "seed": CFG.seed})
+    manifest = load_ckpt(rep["saved"]["dir"], student.model, optim.optim,
+                         {"smoke": True, "seed": CFG.seed, "lr": CFG.lr},
+                         masters=optim.masters)
     assert manifest["step"] == 1
+    assert manifest["code_sha"] and "has_masters" in manifest
     assert param_fingerprint(student.model) == rep["saved_fp"], (
         "reprise ≠ état sauvegardé"
     )

@@ -22,7 +22,12 @@ class SamplerSpec:
 
 
 def sample_token(logits: torch.Tensor, spec: SamplerSpec, rng) -> tuple[int, float]:
-    """Échantillonne un jeton ; confiance = prob du jeton échantillonné."""
+    """Échantillonne un jeton ; confiance = prob du jeton échantillonné.
+
+    Contrat device (B4.2) : `rng.device == logits.device` (l'appelant —
+    `rollout` — construit le générateur sur le device du modèle).
+    Fonctionne à l'identique sur CPU et CUDA.
+    """
     row = logits.float()
     if spec.temperature > 0:
         row = row / spec.temperature

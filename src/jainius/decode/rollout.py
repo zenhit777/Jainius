@@ -1,11 +1,15 @@
-"""JAI-ROLL / JAI-GEN — rollout par blocs et génération de référence (M1-B).
+"""JAI-ROLL / JAI-GEN — rollout par blocs, référence CAUSALE (M1-B, B3).
 
 Convention ``current`` : un bloc = ``[MASK] × B`` ; le logit à la position
-*i* prédit le jeton *i*. Diffusion-Trust de référence : préremplissage
-causal du prompt (écrit l'état), débruitage par bloc (``denoise``, sans
-écriture), commit causal du bloc finalisé (écrit l'état). Séparation
-explicite : calcul des logits (``JainiusModel``) / choix des tokens
-(``sampler``) / validation d'état (``commit``).
+*i* prédit le jeton *i*. Sémantique démontrée (test
+`test_rollout_causal_intra_block`) : décodage causal par blocs —
+préremplissage causal du prompt (écrit l'état), passes causales par bloc
+(``denoise``, sans écriture), commit causal du bloc finalisé (écrit
+l'état). Ce N'EST PAS du Diffusion-Trust : un vrai débruitage
+bidirectionnel intra-bloc exige le contrat d'état GDN (M2), la pile HF
+restant causale par construction. Séparation explicite : calcul des
+logits (``JainiusModel``) / choix des tokens (``sampler``) / validation
+d'état (``commit``).
 """
 
 from __future__ import annotations
@@ -29,7 +33,10 @@ def rollout(
     mask_id = model.spec.mask_token_id
     if response_len % block:
         raise ValueError(f"response_len={response_len} non multiple de B={block}")
-    rng = torch.Generator().manual_seed(sampler.seed)
+    device = next(model.model.parameters()).device
+    # Générateur sur le device des logits (B4.2) : un générateur CPU fait
+    # échouer `multinomial` sur CUDA (RuntimeError constaté).
+    rng = torch.Generator(device=device).manual_seed(sampler.seed)
     traj = Trajectory(
         prompt_ids=list(prompt_ids),
         x0=[],
@@ -37,7 +44,6 @@ def rollout(
         seed=sampler.seed,
         sampler=sampler,
     )
-    device = next(model.model.parameters()).device
     prompt = torch.tensor([prompt_ids], dtype=torch.long, device=device)
     _, cache = model.prefill(prompt)
     traj.n_forwards += 1

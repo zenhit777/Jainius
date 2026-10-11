@@ -20,7 +20,10 @@ class Trajectory:
     prompt_ids: list[int]
     x0: list[int]  # séquence terminale (réponse)
     rounds: list[Round] = field(default_factory=list)
-    model_version: str = ""
+    model_version: str = ""  # empreinte CONFIG/exécution (archi, dtype…)
+    weight_version: str = ""  # empreinte POIDS à la génération (SHA-256
+    # complet, calculé une fois par round — jamais par token) ; "" =
+    # inconnue ⇒ toute vérification de fraîcheur échoue (stale).
     seed: int = 0
     sampler: SamplerSpec = field(default_factory=SamplerSpec)
     n_forwards: int = 0

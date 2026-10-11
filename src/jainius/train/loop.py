@@ -27,6 +27,7 @@ from jainius.decode.sampler import SamplerSpec
 from jainius.distill.curriculum import rollout_length
 from jainius.distill.loss import kl_teacher_to_student
 from jainius.model.arch import TwoStreamBatch
+from jainius.train.master import MasterOptimizer
 
 # Jeu SYNTHÉTIQUE déterministe (câblage uniquement — pas une évaluation).
 # Substitution documentée : `divelab/opdlm_train_data/opdlm_train.json`
@@ -61,7 +62,11 @@ class SmokeConfig:
     warmup_rollouts: int = 10
     response_cap: int = 8
     seed: int = 0
-    lr: float = 1e-5
+    # lr de câblage (B4.3) : à 1e-5 + bf16 pur, les updates s'arrondissent
+    # à zéro (ULP ≫ update) même avec maîtres côté recopie — 1e-3 rend les
+    # mises à jour du modèle OBSERVABLES. Pas une recommandation
+    # d'entraînement (le pilote utilisera 1e-5 + maîtres + accumulation).
+    lr: float = 1e-3
     compat_tol: float = 5e-2  # bf16, parité extended/simple (H-03)
 
 
@@ -76,7 +81,18 @@ def param_fingerprint(model) -> str:
 
 
 def train_step(student, teacher, optim, prompt_ids_list, trajs) -> float:
-    """Un pas : 16 lignes (1 trajectoire ⇒ 1 ligne), KL moyenne, step."""
+    """Un pas : 16 lignes (1 trajectoire ⇒ 1 ligne), KL moyenne, step.
+
+    Alignement `current` (OPDLM `rl_sdar.py:1266-1272,1344-1348`) :
+    l'étudiant n'est PAS décalé (`student_arm_shift=False`) — la position
+    supervisée *i* porte la distribution du jeton *i* ; l'enseignant EST
+    décalé (`Teacher.hidden_for_loss`, `roll(1)`) car sa tête AR prédit
+    le jeton *i+1* à la position *i*. Sans ce décalage, l'entraînement
+    superviserait « jeton suivant » de façon incohérente avec l'inférence
+    (échantillonnage du jeton *i* depuis `logits[i]`). Début de séquence :
+    position 0 = déchet recyclé, jamais supervisée. Supervisées : lignes
+    réponse masquées-en-xt uniquement (`:1425-1428`).
+    """
     device = next(student.model.parameters()).device
     mask_id = student.spec.mask_token_id
     optim.zero_grad()
@@ -91,7 +107,7 @@ def train_step(student, teacher, optim, prompt_ids_list, trajs) -> float:
             TwoStreamBatch(x0=x0, xt=xt, sup_mask=resp)
         )
         with torch.no_grad():
-            h_t = teacher.hidden(x0)
+            h_t = teacher.hidden_for_loss(x0)
         out = kl_teacher_to_student(
             h_s.h_xt, lambda h: student.model.lm_head(h),
             h_t, lambda h: teacher.model.lm_head(h),
@@ -108,6 +124,16 @@ def train_step(student, teacher, optim, prompt_ids_list, trajs) -> float:
     ), "gradients non finis"
     optim.step()
     return float(loss.item())
+
+
+def assert_traj_fresh(traj, model) -> None:
+    """Lève si la trajectoire est obsolète (poids modifiés depuis sa
+    génération) ou sans empreinte. À appeler avant toute réutilisation
+    d'une trajectoire enregistrée (pas 2-4 du smoke, reprise)."""
+    if not traj.weight_version:
+        raise ValueError("trajectoire sans empreinte poids (stale inconnue)")
+    if param_fingerprint(model) != traj.weight_version:
+        raise ValueError("trajectoire obsolète : poids modifiés depuis le rollout")
 
 
 def run_smoke(student, teacher, tokenizer, cfg: SmokeConfig, ckpt_dir) -> dict:
@@ -128,7 +154,7 @@ def run_smoke(student, teacher, tokenizer, cfg: SmokeConfig, ckpt_dir) -> dict:
             tokenizer(chat, return_tensors="pt")["input_ids"][0].tolist()
         )
     assert teacher.is_frozen()
-    optim = torch.optim.AdamW(student.model.parameters(), lr=cfg.lr)
+    optim = MasterOptimizer(student.model, lr=cfg.lr)
     student.model.train()
     rep = {
         "prompts_per_step": [],
@@ -160,10 +186,15 @@ def run_smoke(student, teacher, tokenizer, cfg: SmokeConfig, ckpt_dir) -> dict:
         if step < cfg.n_rollouts:
             spec = SamplerSpec(mode="static", temperature=0.0,
                                steps_per_block=1, seed=cfg.seed + step)
+            # Empreinte poids UNE fois par round (jamais par token) : toute
+            # réutilisation ultérieure exige assert_traj_fresh (B4.1).
+            round_fp = param_fingerprint(student.model)
             trajs = [
                 rollout(student, pids, response_len, spec)
                 for pids in prompt_ids_list
             ]
+            for t in trajs:
+                t.weight_version = round_fp
             rep["trajectories"][step] = trajs
             rep["rollout_fw"] += sum(t.n_forwards for t in trajs)
             assert len(trajs) == cfg.n_prompts
@@ -178,7 +209,11 @@ def run_smoke(student, teacher, tokenizer, cfg: SmokeConfig, ckpt_dir) -> dict:
             assert replay.x0 == trajs[0].x0, "fuite d'état entre rollouts"
             rep["rollout_fw"] += replay.n_forwards
         else:
-            trajs = rep["trajectories"][cfg.n_rollouts - 1]  # réutilisation
+            # Réutilisation après mise à jour : obsolète PAR CONSTRUCTION
+            # dans ce smoke (style NPD single-rollout-multiple-updates) —
+            # la politique de fraîcheur (fenêtre, re-génération) relève de
+            # M2. Le test de reprise, lui, exige la fraîcheur exacte.
+            trajs = rep["trajectories"][cfg.n_rollouts - 1]
         rep["gpu_seconds"][f"rollout_{step}"] = round(time.time() - t0, 2)
         # --- pas d'entraînement (factorisé, réutilisé par le test reprise) ---
         t0 = time.time()
@@ -196,9 +231,18 @@ def run_smoke(student, teacher, tokenizer, cfg: SmokeConfig, ckpt_dir) -> dict:
         rep["prompts_per_step"].append(cfg.n_prompts)
         rep["gpu_seconds"][f"train_{step}"] = round(time.time() - t0, 2)
         if step == 1:
-            rng = torch.get_rng_state()
-            saved["dir"] = save_ckpt(ckpt_dir, student.model, optim, rng,
-                                     step, {"smoke": True, "seed": cfg.seed})
+            rng_cuda = (torch.cuda.get_rng_state_all()
+                        if torch.cuda.is_available() else None)
+            saved["dir"] = save_ckpt(
+                ckpt_dir, student.model, optim.optim, torch.get_rng_state(),
+                step, {"smoke": True, "seed": cfg.seed, "lr": cfg.lr},
+                masters=optim.masters, rng_cuda=rng_cuda,
+                extra={"curriculum_step": step, "length": length,
+                       "updates": rep["updates"],
+                       "budget": {"prompts": sum(rep["prompts_per_step"]),
+                                  "student_train_fw": rep["student_train_fw"],
+                                  "teacher_fw": rep["teacher_fw"],
+                                  "rollout_fw": rep["rollout_fw"]}})
             saved["params_fp"] = param_fingerprint(student.model)
     rep["saved"] = {k: (str(v) if not isinstance(v, str) else v)
                     for k, v in saved.items() if k == "dir"}
