@@ -129,9 +129,17 @@ class JainiusModel:
             masks.append(m)
         allow = torch.stack(masks)  # [B, 2L, 2L] booléen
         additive = torch.zeros(allow.shape, dtype=dtype, device=concat.device)
-        additive[~allow] = neg
+        additive[~allow] = torch.finfo(dtype).min
         additive = additive[:, None, :, :]  # [B, 1, 2L, 2L]
-        out = self.model(concat, attention_mask=additive, output_hidden_states=True)
+        # Positions répétées : xt reçoit les mêmes ids que x0 (cahier §10.2 ;
+        # OPDLM `tok_idx_ext = cat([tok_idx, tok_idx_resp])`). Sans cela, le
+        # forward étudiant diverge de la référence (test_target_alignment).
+        pos = torch.arange(length, device=concat.device).unsqueeze(0)
+        pos_ext = torch.cat([pos, pos], dim=1).expand(bsz, -1)
+        out = self.model(
+            concat, attention_mask=additive, position_ids=pos_ext,
+            output_hidden_states=True,
+        )
         hidden = out.hidden_states[-1]
         return TwoStreamHidden(h_x0=hidden[:, :length], h_xt=hidden[:, length:])
 

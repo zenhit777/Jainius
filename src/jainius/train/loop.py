@@ -6,9 +6,12 @@ contrôle extended) → KL OPDLM → SGD/AdamW → checkpoint/reprise.
 AUCUN terme FLARE. Convention `current` uniquement.
 
 Config smoke (§11.3) : 16 prompts, 2 rollouts, L_max=128, 5 pas.
-Micro-paramètres assumés et documentés : réponse générée plafonnée à
-``response_cap=8`` (vitesse ; L_max reste un plafond respecté, jamais
-atteint), ``steps_per_block=1``, température 0.
+Micro-paramètres assumés et documentés : réponse plafonnée à
+``response_cap=8`` (vitesse). CONSÉQUENCE ASSUMÉE : toutes les réponses
+générées font 8 tokens — l'effet effectif du curriculum sur les longueurs
+de rollout N'EST PAS mesuré ici (seules les valeurs L_s calculées sont
+vérifiées) ; la mesure longueurs relève d'un pilote, pas du smoke.
+``steps_per_block=1``, température 0.
 """
 
 from __future__ import annotations
@@ -127,21 +130,18 @@ def run_smoke(student, teacher, tokenizer, cfg: SmokeConfig, ckpt_dir) -> dict:
     assert teacher.is_frozen()
     optim = torch.optim.AdamW(student.model.parameters(), lr=cfg.lr)
     student.model.train()
-    device = next(student.model.parameters()).device
-    mask_id = student.spec.mask_token_id
     rep = {
         "prompts_per_step": [],
         "lengths": [],
         "losses": [],
         "grads_finite": [],
         "params_changed": [],
+        "params_fp": [],
         "student_train_fw": 0,
-        "teacher_fw": 0,
-        "rollout_fw": 0,
-        "compat_diffs": [],
+        "teacher_fw": 0,  # forward `hidden` uniquement (16/pas) ; le contrôle
+        "rollout_fw": 0,  # extended vit dans le diagnostic séparé (pré-M2)
         "updates": 0,
         "trajectories": {},
-        "params_fp": [],
         "gpu_seconds": {},
         "l_max_respected": True,
     }
@@ -195,18 +195,6 @@ def run_smoke(student, teacher, tokenizer, cfg: SmokeConfig, ckpt_dir) -> dict:
         rep["params_fp"].append(param_fingerprint(student.model))
         rep["prompts_per_step"].append(cfg.n_prompts)
         rep["gpu_seconds"][f"train_{step}"] = round(time.time() - t0, 2)
-        # --- contrôle parité extended/simple (porte compatibilité, prompt 0) ---
-        pids, traj = prompt_ids_list[0], trajs[0]
-        pro = torch.tensor([pids], dtype=torch.long, device=device)
-        xr = torch.tensor([traj.x0], dtype=torch.long, device=device)
-        xt0 = xr.clone()
-        xt0[0, ::2] = mask_id
-        with torch.no_grad():
-            simple = teacher.logprobs_simple(torch.cat([pro, xr], dim=1))
-            extended = teacher.logprobs_extended(pro, xr, xt0, mask_id)
-        diff = (simple - extended).abs()[0, pro.shape[1]:].max().item()
-        rep["teacher_fw"] += 1  # extended
-        rep["compat_diffs"].append(diff)
         if step == 1:
             rng = torch.get_rng_state()
             saved["dir"] = save_ckpt(ckpt_dir, student.model, optim, rng,
