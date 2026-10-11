@@ -2,3 +2,5 @@
 .env.*
 !.env.example
 _artefacts/
+__pycache__/
+.pytest_cache/

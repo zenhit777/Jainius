@@ -5,8 +5,8 @@ continuation depuis le cache direct (prouve la capture complète des états
 GDN récurrents + convolutifs et des caches KV).
 T-STATE-03 : exécution batchée ≡ exécutions séparées (aucune contamination
 inter-requêtes au niveau du forward HF).
-T-STATE-02 (denoise sans écriture) : BLOCKED — requiert le chemin
-`denoise` (M1-B, JAI-ARCH).
+T-STATE-02 (denoise sans écriture) : testé en M1-B dans
+test_denoise_no_write.py.
 """
 
 import pytest
@@ -94,10 +94,6 @@ def test_state_reset_rows_requires_jai_state():
     with pytest.raises(NotImplementedError):
         reset_rows(object(), torch.tensor([True]))
 
-
-@pytest.mark.skip(
-    reason="BLOCKED (M1-A) : T-STATE-02 requiert le chemin `denoise` "
-    "(JAI-ARCH, M1-B) pour vérifier l'absence d'écriture d'état."
-)
-def test_state_02_denoise_no_write():
-    raise AssertionError("ne doit pas s'exécuter")
+# NOTE M1-B : T-STATE-02 est désormais testé pour de vrai dans
+# tests/unit/test_denoise_no_write.py (JAI-ARCH `denoise` + garde
+# StateLeakError). Le stub skippé a été supprimé, pas réécrit.

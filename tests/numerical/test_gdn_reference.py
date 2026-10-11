@@ -37,9 +37,10 @@ def test_gdn_01_layer_map_and_determinism(model_bf16, tokenizer):
 
 
 @pytest.mark.skip(
-    reason="BLOCKED (M1-A) : requiert l'environnement FLARE "
-    "(torch 2.10 + fla 0.5.1) pour T-GDN-03, et le forward deux-flux "
-    "(M1-B) pour T-GDN-02/04/05."
+    reason="BLOCKED : T-GDN-03 requiert l'environnement FLARE "
+    "(torch 2.10 + fla 0.5.1) ; T-GDN-04 requiert JAI-STATE.reset ; "
+    "T-GDN-05 requiert le graphe deux-flux avec gradient (M1-C). "
+    "T-GDN-02 est testé pour de vrai dans test_gdn_batched.py."
 )
 def test_gdn_blocked_oracle_and_two_stream():
     raise AssertionError("ne doit pas s'exécuter")
