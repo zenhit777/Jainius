@@ -16,12 +16,28 @@ Dernière vérification : 2026-10-12 (`scripts/check_env.sh`).
 
 | Image | Usage | État (2026-10-12) |
 |---|---|---|
-| `lmsysorg/sglang:dev-cu13` (47.4 Go) | moteur de serving SGLang (cible JAI-SGLANG) | image présente, non démarrée |
-| `lmsysorg/sglang:latest` (52.2 Go) | idem, tag stable | image présente, non démarrée |
-| `vllm/vllm-openai:latest` (29.9 Go) | moteur de serving vLLM (comparaison) | image présente |
+| `lmsysorg/sglang:dev-cu13` (47.4 Go) | moteur de serving SGLang (cible JAI-SGLANG) | **spike 2026-10-12 : AR natif Qwen3.5-0.8B fonctionnel (535 tok/s bs=1, 1507 tok/s C=4) ; MTP FROZEN_KV_MTP WIP amont** |
+| `lmsysorg/sglang:latest` (52.2 Go) | idem, tag stable | même verdict MTP (WIP amont, FIXME développeur) |
+| `vllm/vllm-openai:latest` (29.9 Go) | moteur de serving vLLM (comparaison) | image présente, non testé |
 | `qdrant/qdrant:latest` | base vectorielle docs | **en cours** (ports 6333-6334) |
 | `nvidia/cuda:12.6.0-base-ubuntu22.04` | base CUDA | présente |
 | (divers `llmd`) | serving distribué llmd | conteneurs arrêtés |
+
+### Spike SGLang — Qwen3.5-0.8B (2026-10-12, `docs/audits/audit-spike-sglang-20261012/REPORT.md`)
+
+- **B0-plain (AR) : PASS** — chargement natif (~55 s), couches
+  récurrentes hybrides reconnues (`mamba usage`), CUDA graphs,
+  `/v1/chat/completions` 200. Aucune installation ni fork requis.
+- **B0-MTP (FROZEN_KV_MTP) : FAIL** — WIP amont sur dev-cu13 et
+  latest : crash d'init `compute_num_reserved_tokens`
+  (params EAGLE à `None`), timeout worker même contourné ;
+  `spec_info.py` : « FIXME(kpham_sgl): Remove FROZEN_KV_MTP
+  here once we have established support for it in the scheduler ».
+- Lancement : `docker run --gpus all --rm
+  -v /home/sjteb/.cache/huggingface:/root/.cache/huggingface
+  -p 30000:30000 lmsysorg/sglang:dev-cu13
+  python -m sglang.launch_server --model-path Qwen/Qwen3.5-0.8B
+  --host 0.0.0.0 --port 30000`.
 
 **Règle** : vérifier `docker ps` / `docker images` AVANT d'installer tout
 moteur de serving ou d'évaluation dans un venv. Une image existante prime
@@ -34,7 +50,7 @@ sur une installation pip.
 | Système `python3` | 3.12.3 | 2.12.0+cu130 | 5.10.2 | usage général (pas de pytest) |
 | `/home/sjteb/.venvs/opdlm-parity` | 3.13.16 | 2.11.0+cu128 | 4.52.4 (trop vieux pour `qwen3_5`) | parité OPDLM (T-LOSS-05) |
 | `/home/sjteb/.venvs/flare-oracle` | — | 2.10.0+cu128 | 4.57.1 + tyro + fla 0.5.1 | oracle FLARE (T-GDN-03) |
-| `/home/sjteb/.venvs/jainius-check` | 3.12.3 | 2.12.0+cu130 | 5.10.2 | vérifications GPU courantes (pytest, accelerate, tyro, datasets) — venv d'analyse, NON l'environnement de référence |
+| `/home/sjteb/.venvs/jainius-check` | 3.12.3 | 2.14.1+cu130 | 5.10.2 | vérifications GPU courantes (pytest, accelerate, tyro, datasets) — venv d'analyse, NON l'environnement de référence |
 | `requirements-lock.txt` (référence ADR-003) | — | 2.11.0+cu128 | 5.17.0 | **environnement de référence à reconstruire pour les mesures définitives (B0)** |
 
 ## 4. Modèles en cache HF
