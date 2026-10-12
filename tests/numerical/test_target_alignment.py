@@ -84,7 +84,8 @@ def test_alignment_wiring_vs_manual():
     sup = torch.zeros_like(x0, dtype=torch.bool)
     with torch.no_grad():
         got = student.forward_two_stream(TwoStreamBatch(x0=x0, xt=xt,
-                                                         sup_mask=sup))
+                                                         sup_mask=sup),
+                                         allow_legacy_leaky=True)
         ref_x0, ref_xt = _manual_two_stream(model, x0, xt, x0.shape[1])
     assert torch.equal(got.h_x0, ref_x0) and torch.equal(got.h_xt, ref_xt)
     del model
@@ -138,7 +139,8 @@ def test_alignment_shift_sensitivity():
     sup[0, l0:] = (xt_resp[0] == MASK_ID)
     with torch.no_grad():
         h_s = student.forward_two_stream(
-            TwoStreamBatch(x0=x0, xt=xt, sup_mask=sup)).h_xt
+            TwoStreamBatch(x0=x0, xt=xt, sup_mask=sup),
+            allow_legacy_leaky=True).h_xt
         h_t = teacher.hidden_for_loss(x0)
     head = lambda h: model.lm_head(h)
     loss_ref = kl_teacher_to_student(h_s, head, h_t, head, sup).loss.item()
@@ -188,7 +190,8 @@ def test_alignment_shift_trap_documented():
     sup[0, l0:] = (xt_resp[0] == MASK_ID)
     with torch.no_grad():
         h_s = student.forward_two_stream(
-            TwoStreamBatch(x0=x0, xt=xt, sup_mask=sup)).h_xt
+            TwoStreamBatch(x0=x0, xt=xt, sup_mask=sup),
+            allow_legacy_leaky=True).h_xt
         h_t_raw = teacher.hidden(x0)  # ANCIEN chemin (sans roll)
     head = lambda h: model.lm_head(h)
     loss_raw = kl_teacher_to_student(h_s, head, h_t_raw, head, sup).loss.item()

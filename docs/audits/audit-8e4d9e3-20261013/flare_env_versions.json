@@ -1,0 +1,22 @@
+{
+  "venv": "/tmp/flare-oracle (WSL Ubuntu, ephemere \u2014 reconstructible via _artefacts/setup_flare_venv.sh + install_flare_stack.sh)",
+  "python": "3.13.16",
+  "packages": {
+    "torch": "2.10.0+cu128",
+    "triton": "3.6.0",
+    "fla": "0.5.1",
+    "transformers": "4.57.1",
+    "numpy": "2.5.4",
+    "fla_core": "0.5.1",
+    "tyro": "1.0.16",
+    "datasets": "3.6.0"
+  },
+  "cuda": true,
+  "device": "NVIDIA GeForce RTX 5090",
+  "pins_officiels": "torch==2.10.0+cu128, FLA_VERSION==0.5.1, transformers==4.57.1, datasets==3.6.0 (setup_envs_models_qwen35.sh)",
+  "ecarts_documentes": [
+    "numpy==2.5.4 au lieu de 1.26.4 (pyarrow de datasets 3.6.0 exige NumPy>=2 ; sans effet sur la math du noyau, tenseurs torch uniquement)",
+    "transformers pin applique apres coup (5.19.0 -> 4.57.1) suite a conflit huggingface_hub ; torchao 0.18.0 degrade (cpp extensions ignorees, torch>=2.11 requis) \u2014 import python OK",
+    "Python 3.13.16 (uv) au lieu de 3.11 (pins cp312 absents pour torch 2.10.0+cu128 ; cp313 disponible)"
+  ]
+}

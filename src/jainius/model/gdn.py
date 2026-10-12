@@ -27,9 +27,14 @@ def l2norm(x: torch.Tensor, eps: float = 1e-6) -> torch.Tensor:
 
 
 def gdn_step(S: torch.Tensor, q: torch.Tensor, k: torch.Tensor,
-             v: torch.Tensor, g: float, beta: float):
-    """Un pas : S [K, V], q/k [K], v [V], g/beta scalaires. -> (o, S_new)."""
-    decay = math.exp(g)
+             v: torch.Tensor, g: torch.Tensor, beta: torch.Tensor):
+    """Un pas : S [K, V], q/k [K], v [V], g/beta scalaires (tenseurs 0-d).
+
+    P1/P2 : opérations PyTorch différentiables uniquement — `torch.exp`
+    et indexation native. Aucun `float()`, `math.exp` ou extraction
+    scalaire Python sur le chemin du gradient (le graphe autograd vers
+    `A_log`, `dt_bias`, `in_proj_a/b`, q/k/v doit rester intact)."""
+    decay = torch.exp(g)
     S = S * decay
     kv = (S * k.unsqueeze(-1)).sum(dim=-2)
     delta = (v - kv) * beta
@@ -40,13 +45,16 @@ def gdn_step(S: torch.Tensor, q: torch.Tensor, k: torch.Tensor,
 
 def gdn_run(q, k, v, g, beta, S0=None):
     """Déroulé causal : q/k [T, K], v [T, V], g/beta [T]. -> (outs, S_end).
-    dtype = celui des entrées (float64 référence, dtype modèle en runner)."""
+    dtype = celui des entrées (float64 référence, dtype modèle en runner).
+
+    P1/P2 : `g[t]` / `beta[t]` restent des tenseurs 0-d (indexation native),
+    jamais convertis en `float` Python."""
     K, V = k.shape[-1], v.shape[-1]
     S = (torch.zeros(K, V, dtype=q.dtype, device=q.device)
          if S0 is None else S0.clone())
     outs = []
     for t in range(q.shape[0]):
-        o, S = gdn_step(S, q[t], k[t], v[t], float(g[t]), float(beta[t]))
+        o, S = gdn_step(S, q[t], k[t], v[t], g[t], beta[t])
         outs.append(o)
     return torch.stack(outs), S
 
@@ -88,10 +96,19 @@ def causal_short_conv_hist(x, weight, hist=None):
 class GDNRefLayer:
     """Couche GDN de référence extraite d'une couche HF (poids FIGÉS,
     recopiés float64). `forward_clean` reproduit le causal HF (T-GDN-01).
-    `forward_noisy_block` applique la sémantique planifiée B0."""
+    `forward_noisy_block` applique la sémantique planifiée B0.
+
+    P1/P2 — différentiabilité : les copies `W_*`/`A_log`/`dt_bias` ci-dessous
+    servent aux formes et aux tests de référence SANS gradient. Le chemin
+    d'entraînement (`TwoStreamRunner.forward_train` + `train_step`) lit les
+    poids VIVANTS de la couche HF (`self._hf`, cast différentiable vers le
+    dtype de calcul) afin que le graphe autograd atteigne les paramètres
+    `in_proj_qkv/z/b/a`, `A_log`, `dt_bias`, `conv1d`, `norm`, `out_proj` et
+    les projections q/k/v. Aucune conversion Python sur ce chemin."""
 
     def __init__(self, hf_layer, dtype: torch.dtype = torch.float64):
         g = hf_layer
+        self._hf = g  # référence vivante (chemin gradient, P1/P2)
         self.dtype = dtype
         self.n_k = g.num_k_heads
         self.n_v = g.num_v_heads
@@ -116,13 +133,26 @@ class GDNRefLayer:
         self.W_out = conv(g.out_proj.weight)
         self.repeat = self.n_v // self.n_k
 
+    def _live(self, t: torch.Tensor, dtype: torch.dtype) -> torch.Tensor:
+        """Cast différentiable vers le dtype de calcul (le gradient traverse
+        le cast vers le paramètre vivant)."""
+        return t.to(dtype) if t.dtype != dtype else t
+
     def _project(self, h):
-        mixed = h @ self.W_qkv.T
-        z = (h @ self.W_z.T).reshape(h.shape[0], h.shape[1], -1, self.d_v)
-        b = torch.sigmoid(h @ self.W_b.T)
-        a = h @ self.W_a.T
-        g = -torch.exp(self.A_log) * torch.nn.functional.softplus(
-            a + self.dt_bias)
+        cdtype = h.dtype
+        hf = self._hf
+        W_qkv = self._live(hf.in_proj_qkv.weight, cdtype)
+        W_z = self._live(hf.in_proj_z.weight, cdtype)
+        W_b = self._live(hf.in_proj_b.weight, cdtype)
+        W_a = self._live(hf.in_proj_a.weight, cdtype)
+        A_log = self._live(hf.A_log, cdtype)
+        dt_bias = self._live(hf.dt_bias, cdtype)
+        mixed = h @ W_qkv.T
+        z = (h @ W_z.T).reshape(h.shape[0], h.shape[1], -1, self.d_v)
+        b = torch.sigmoid(h @ W_b.T)
+        a = h @ W_a.T
+        g = -torch.exp(A_log) * torch.nn.functional.softplus(
+            a + dt_bias)
         return mixed, z, b, g
 
     def _core(self, q, k, v, g, beta, S0=None):
@@ -146,12 +176,19 @@ class GDNRefLayer:
         return torch.stack(outs).permute(0, 2, 1, 3), torch.stack(sends)
 
     def _finish(self, core, z):
+        cdtype = core.dtype
+        hf = self._hf
+        norm_w = self._live(hf.norm.weight, cdtype)
         n = core.reshape(-1, self.d_v)
         var = (n.double().pow(2).mean(-1, keepdim=True))
         n = n * torch.rsqrt(var + self.eps)
-        n = n * self.norm_w.to(core.dtype)
+        n = n * norm_w.to(core.dtype)
         n = n * silu(z.reshape(-1, self.d_v).to(torch.float64))
-        return n.to(core.dtype)
+        return n.to(cdtype)
+
+    def _conv_weight(self, dtype: torch.dtype) -> torch.Tensor:
+        hf = self._hf
+        return self._live(hf.conv1d.weight.squeeze(1), dtype)
 
     def forward_clean(self, h, S0=None, conv_hist=None):
         """Causal exact : (out [B, L, Vdim], S_end [B, H, K, V], conv_end
@@ -159,7 +196,7 @@ class GDNRefLayer:
         B, L, _ = h.shape
         mixed, z, beta, g = self._project(h)
         mixed_t = mixed.transpose(1, 2)
-        conv = causal_short_conv_hist(mixed_t, self.conv_w,
+        conv = causal_short_conv_hist(mixed_t, self._conv_weight(mixed_t.dtype),
                                       hist=conv_hist)
         conv = silu(conv).transpose(1, 2)
         q, k, v = torch.split(conv, [self.kdim, self.kdim, self.vdim], -1)
@@ -170,13 +207,17 @@ class GDNRefLayer:
             q = q.repeat_interleave(self.repeat, dim=2)
             k = k.repeat_interleave(self.repeat, dim=2)
         core, send = self._core(q, k, v, g, beta, S0=S0)
-        out = self._finish(core, z).reshape(B, L, -1) @ self.W_out.T
+        hf = self._hf
+        W_out = self._live(hf.out_proj.weight, core.dtype)
+        out = self._finish(core, z).reshape(B, L, -1) @ W_out.T
         if conv_hist is None:
             full_in = mixed_t
         else:
             full_in = torch.cat(
                 [conv_hist.to(dtype=mixed_t.dtype), mixed_t], dim=-1)
-        conv_end = full_in[:, :, -(self.conv_k - 1):].detach().clone()
+        # P1/P2 : `clone()` différentiable (pas de `detach`) — le gradient
+        # vers le préfixe propre via l'historique conv est préservé.
+        conv_end = full_in[:, :, -(self.conv_k - 1):].clone()
         return out, send, conv_end
 
     def _block_qkvz(self, h_block, conv_init):
@@ -184,7 +225,7 @@ class GDNRefLayer:
         B, L, _ = h_block.shape
         mixed, z, beta, g = self._project(h_block)
         mixed_t = mixed.transpose(1, 2)
-        conv = causal_short_conv_hist(mixed_t, self.conv_w, hist=conv_init)
+        conv = causal_short_conv_hist(mixed_t, self._conv_weight(mixed_t.dtype), hist=conv_init)
         conv = silu(conv).transpose(1, 2)
         q, k, v = torch.split(conv, [self.kdim, self.kdim, self.vdim], -1)
         q = q.reshape(B, L, -1, self.d_k)
@@ -217,7 +258,9 @@ class GDNRefLayer:
             outs.append(torch.stack(ob))
             sends.append(torch.stack(sb))
         core = torch.stack(outs).permute(0, 2, 1, 3)  # [B, T, H, V]
-        out = self._finish(core, z).reshape(B, L, -1) @ self.W_out.T
+        hf = self._hf
+        W_out = self._live(hf.out_proj.weight, core.dtype)
+        out = self._finish(core, z).reshape(B, L, -1) @ W_out.T
         return out, torch.stack(sends)
 
 
@@ -251,21 +294,21 @@ class GDNRef:
         self.eps = 1e-6
 
         # Projections (poids aléatoires, float64).
-        self.W_qkv = torch.nn.Parameter(torch.randn(n_heads * 2 * d_k + n_heads * d_v,
-                                                     n_heads * d_k) * 0.1)
-        self.W_z = torch.nn.Parameter(torch.randn(n_heads * d_v,
-                                                   n_heads * d_k) * 0.1)
-        self.W_b = torch.nn.Parameter(torch.randn(n_heads * d_v,
-                                                   n_heads * d_k) * 0.1)
-        self.W_a = torch.nn.Parameter(torch.randn(n_heads * d_k,
-                                                   n_heads * d_k) * 0.1)
+        self.W_qkv = torch.nn.Parameter((torch.randn(n_heads * 2 * d_k + n_heads * d_v,
+                                                     n_heads * d_k) * 0.1).double())
+        self.W_z = torch.nn.Parameter((torch.randn(n_heads * d_v,
+                                                   n_heads * d_k) * 0.1).double())
+        self.W_b = torch.nn.Parameter((torch.randn(n_heads * d_v,
+                                                   n_heads * d_k) * 0.1).double())
+        self.W_a = torch.nn.Parameter((torch.randn(n_heads * d_k,
+                                                   n_heads * d_k) * 0.1).double())
         self.conv_w = torch.nn.Parameter(
-            torch.randn(n_heads * d_v, conv_kernel) * 0.1)
-        self.A_log = torch.nn.Parameter(torch.randn(n_heads * d_k))
-        self.dt_bias = torch.nn.Parameter(torch.randn(n_heads * d_k))
-        self.norm_w = torch.nn.Parameter(torch.ones(n_heads * d_v))
+            (torch.randn(n_heads * (2 * d_k + d_v), conv_kernel) * 0.1).double())
+        self.A_log = torch.nn.Parameter(torch.randn(n_heads * d_k).double())
+        self.dt_bias = torch.nn.Parameter(torch.randn(n_heads * d_k).double())
+        self.norm_w = torch.nn.Parameter(torch.ones(n_heads * d_v).double())
         self.W_out = torch.nn.Parameter(
-            torch.randn(n_heads * d_v, n_heads * d_v) * 0.1)
+            (torch.randn(n_heads * d_v, n_heads * d_v) * 0.1).double())
 
     def _project(self, h):
         """Projections : (mixed [B,L,H*2Dk+H*Dv], z, beta, g)."""
@@ -313,7 +356,8 @@ class GDNRef:
                 vv = v[:, t, hh]  # [Dv]
                 gg = g[hh]        # [Dk]
                 bb = beta[:, t, hh]  # [Dv]
-                o, S_new = gdn_step(S[:, hh], qq, kk, vv, float(gg), float(bb))
+                # P1/P2 : tenseurs conservés (pas de `float()` — graphe intact).
+                o, S_new = gdn_step(S[:, hh], qq, kk, vv, gg, bb)
                 ob.append(o)
                 sb.append(S_new)
             outs.append(torch.stack(ob, dim=1))  # [B, H, Dv]
@@ -353,7 +397,8 @@ class GDNRef:
                 vv = v[:, t, hh]
                 gg = g[hh]
                 bb = beta[:, t, hh]
-                o, S_new = gdn_step(S[:, hh], qq, kk, vv, float(gg), float(bb))
+                # P1/P2 : tenseurs conservés (pas de `float()` — graphe intact).
+                o, S_new = gdn_step(S[:, hh], qq, kk, vv, gg, bb)
                 ob.append(o)
                 sb.append(S_new)
             outs.append(torch.stack(ob, dim=1))

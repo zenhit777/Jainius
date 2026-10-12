@@ -10,7 +10,9 @@ Sémantique planifiée (note B0, `docs/decisions/M2-contrat-etat-GDN.md`) :
 Implémentation : normes/MLP/projections/qk-norm/RoPE réutilisés (modules
 HF en place, dtype modèle) ; SDPA exact avec masque explicite ;
 récurrence GDN par `gdn.GDNRefLayer` (validée T-GDN-01).
-`torch.no_grad()` partout (référence d'inférence, pas d'entraînement).
+`prefill`/`denoise_block`/`commit` sont des chemins d'inférence (appelés
+sous `torch.no_grad` par les tests) ; `forward_train` RESTE dans le graphe
+autograd (aucun `detach`/`no_grad` sur le chemin étudiant — P1/P2).
 """
 
 from __future__ import annotations
@@ -406,8 +408,10 @@ class TwoStreamRunner:
         return logits
 
     def forward_train(self, x0, xt, unit_block, doc_ids=None, resp_start=None):
-        """Two-stream complet : (h_x0, h_xt) [B, L, D] BRUTS (pré-norme,
-        comme `hidden_states[-1]` HF).
+        """Two-stream complet : (h_x0, h_xt) [B, L, D] BRUTS (pré-norme).
+
+        Reste dans le graphe autograd (P1) : aucun `detach`/`no_grad` sur le
+        chemin étudiant ; les snapshots sont des `clone()` différentiables.
 
         Layout (B1/OPDLM) : le propre couvre toute la séquence ; les blocs
         bruités ne couvrent que la RÉPONSE `[resp_start, L)`, alignés sur
@@ -416,21 +420,34 @@ class TwoStreamRunner:
         Chaque bloc bruité démarre du snapshot propre de sa frontière
         (zéro si début de document), lecture depuis S̃_end. `doc_ids`
         [B, L] (défaut : un seul document).
+
+        P3 : snapshots du préfixe calculés en UN passage progressif (états
+        propres étendus bloc par bloc, O(L)) puis réutilisés aux frontières
+        — sans recalcul quadratique du préfixe. Sémantique identique à
+        `_forward_train_quadratic` (cf. test d'équivalence P3).
         """
         B, L = x0.shape
         dev = x0.device
         doc = (torch.zeros(B, L, dtype=torch.long, device=dev)
                if doc_ids is None else doc_ids)
         rs = 0 if resp_start is None else resp_start
-        # --- flux propre ---
-        h = self.embed(x0)
-        pos = self._doc_positions(doc)
-        gstates, kvstates = self.fresh_states(B, dev)
-        h_x0, gstates, kvstates = self._clean_layers(
-            h, pos, gstates, kvstates, doc, reset_rows=None)
-        # --- flux bruité, blocs alignés sur la réponse ---
-        h = self.embed(xt)
-        h_xt = torch.zeros_like(h)
+        # --- flux propre : un passage progressif, snapshots aux frontières ---
+        h_emb_x0 = self.embed(x0)
+        h_emb_xt = self.embed(xt)
+        h_xt = torch.zeros_like(h_emb_xt)
+        # États propres courants (après [0, cur)) ; snapshots par frontière.
+        g_cur, kv_cur = self.fresh_states(B, dev)
+        h_x0 = torch.zeros_like(h_emb_x0)
+        # Préfixe [0, rs) une fois (peut être vide).
+        cur = 0
+        if rs > 0:
+            seg = slice(0, rs)
+            pos = self._doc_positions(doc[:, seg])
+            h_seg, g_cur, kv_cur = self._clean_layers(
+                h_emb_x0[:, seg], pos, g_cur, kv_cur, doc[:, seg],
+                reset_rows=None)
+            h_x0[:, seg] = h_seg
+            cur = rs
         n_blocks = (L - rs + unit_block - 1) // unit_block
         for bb in range(n_blocks):
             s = rs + bb * unit_block
@@ -438,12 +455,52 @@ class TwoStreamRunner:
             # Contrat : aucun bloc ne chevauche deux documents.
             assert bool(((doc[:, s:e] == doc[:, s:s + 1]).all())), (
                 "bloc à cheval sur deux documents (hors contrat M1)")
+            # Snapshot = états après le préfixe propre [0, s) (déjà calculés).
+            snap_g = [type(st)(S=st.S.clone(), conv=st.conv.clone())
+                      for st in g_cur]
+            snap_kv = [(k.clone(), v.clone(), d.clone()) for k, v, d in kv_cur]
+            posb = self._doc_positions(doc[:, s:e], past_doc=doc[:, :s])
+            zero_init = ((doc[:, s] != doc[:, s - 1]) if s > 0
+                         else torch.zeros(B, dtype=torch.bool, device=dev))
+            h_xt[:, s:e] = self._noisy_block_layers(
+                h_emb_xt[:, s:e], posb, snap_g, snap_kv, doc[:, s:e], doc,
+                zero_init)
+            # Étendre le propre à travers [s, e) pour le bloc suivant.
+            pos_c = self._doc_positions(doc[:, s:e], past_doc=doc[:, :s])
+            h_seg, g_cur, kv_cur = self._clean_layers(
+                h_emb_x0[:, s:e], pos_c, g_cur, kv_cur, doc[:, s:e],
+                reset_rows=None)
+            h_x0[:, s:e] = h_seg
+            cur = e
+        return h_x0, h_xt
+
+    def _forward_train_quadratic(self, x0, xt, unit_block, doc_ids=None,
+                                 resp_start=None):
+        """Variante historique NAÏVE (P3) : snapshots recalculés depuis 0 à
+        chaque bloc (O(n_blocs × L)). Conservée pour la mesure avant/après
+        optimisation. Même sémantique, même contrat."""
+        B, L = x0.shape
+        dev = x0.device
+        doc = (torch.zeros(B, L, dtype=torch.long, device=dev)
+               if doc_ids is None else doc_ids)
+        rs = 0 if resp_start is None else resp_start
+        h = self.embed(x0)
+        pos = self._doc_positions(doc)
+        gstates, kvstates = self.fresh_states(B, dev)
+        h_x0, gstates, kvstates = self._clean_layers(
+            h, pos, gstates, kvstates, doc, reset_rows=None)
+        h = self.embed(xt)
+        h_xt = torch.zeros_like(h)
+        n_blocks = (L - rs + unit_block - 1) // unit_block
+        for bb in range(n_blocks):
+            s = rs + bb * unit_block
+            e = min(s + unit_block, L)
+            assert bool(((doc[:, s:e] == doc[:, s:s + 1]).all())), (
+                "bloc à cheval sur deux documents (hors contrat M1)")
             hb = h[:, s:e]
             posb = self._doc_positions(doc[:, s:e], past_doc=doc[:, :s])
-            # Snapshot : états après le préfixe propre [0, s).
             snap_g, snap_kv = self._clean_prefix_states(
                 x0, s, doc, gstates=True)
-            # Zéro si le bloc démarre un document (sauf s == 0 : déjà zéro).
             zero_init = ((doc[:, s] != doc[:, s - 1]) if s > 0
                          else torch.zeros(B, dtype=torch.bool, device=dev))
             h_xt[:, s:e] = self._noisy_block_layers(

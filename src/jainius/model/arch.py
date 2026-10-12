@@ -33,6 +33,13 @@ class StateLeakError(RuntimeError):
     """Un forward sans écriture a muté l'état récurrent."""
 
 
+class LegacyLeakyError(RuntimeError):
+    """Le chemin historique `legacy_leaky` (flux concaténé, fuite GDN H-02)
+    est refusé en entraînement (P1). Utiliser `TwoStreamRunner.forward_train`
+    (graphe autograd, sans fuite). Voie de caractérisation uniquement :
+    `legacy_leaky_forward` / `forward_two_stream(allow_legacy_leaky=True)."""
+
+
 @dataclass(frozen=True)
 class DiffusionSpec:
     block_size: int = 4
@@ -101,12 +108,30 @@ class JainiusModel:
         """Forward causal du bloc finalisé ; ÉCRIT l'état. Retourne (logits, cache)."""
         return self.prefill(block_ids, past=cache)
 
-    def forward_two_stream(self, batch: TwoStreamBatch) -> TwoStreamHidden:
-        """Forward concaténé ``[x0 | xt]`` avec masque JAI-MASK (attention).
+    def forward_two_stream(self, batch: TwoStreamBatch,
+                           *, allow_legacy_leaky: bool = False) -> TwoStreamHidden:
+        """CHEMIN HISTORIQUE `legacy_leaky` (P1) — REFUSÉ par défaut.
 
+        Flux concaténé ``[x0 | xt]`` avec masque JAI-MASK (attention).
         H-02 : les couches GDN restent causales sur le flux concaténé
-        (divergence documentée vs lecture de fin de bloc FLARE).
+        (divergence documentée vs lecture de fin de bloc FLARE) — FUITE
+        du futur x0 vers xt, caractérisée par `test_two_stream_gdn_future_leak`.
+
+        P1 : l'entraînement DOIT utiliser `TwoStreamRunner.forward_train`.
+        Cet alias lève `LegacyLeakyError` sauf `allow_legacy_leaky=True`
+        (voie de caractérisation/diagnostic isolée). Le test
+        `test_legacy_leaky_refused_by_default` verrouille ce refus.
         """
+        if not allow_legacy_leaky:
+            raise LegacyLeakyError(
+                "forward_two_stream est le chemin historique `legacy_leaky` "
+                "(fuite H-02) — refusé en entraînement ; utiliser "
+                "TwoStreamRunner.forward_train (P1). Caractérisation : "
+                "forward_two_stream(batch, allow_legacy_leaky=True).")
+        return self.legacy_leaky_forward(batch)
+
+    def legacy_leaky_forward(self, batch: TwoStreamBatch) -> TwoStreamHidden:
+        """Implémentation historique du flux concaténé (caractérisation)."""
         if self.spec.logit_convention != "current":
             raise ConventionMismatch("forward_two_stream exige `current` (M1-B)")
         x0, xt = batch.x0, batch.xt

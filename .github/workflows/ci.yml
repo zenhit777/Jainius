@@ -1,13 +1,26 @@
-name: CI (CPU — masques, curriculum, perte)
+name: CI (unifiée — CPU + statut oracles)
+
+# Workflow PRINCIPAL unique (P5.5) : remplace ci.yml + cpu.yml (supprimés).
+# - PR et pushes sur main : job cpu-tests (tests réellement compatibles CPU,
+#   sans poids ni CUDA) + job oracle-status (informatif : NE transforme
+#   aucun test bloqué en succès — il IMPRIME les causes BLOCKED).
+# - Les tests CUDA/poids (modèle Qwen3.5-0.8B, T-GDN-01/03, runner, P1/P2/P3)
+#   et les oracles FLARE/OPDLM ne tournent PAS ici (runners ubuntu sans GPU).
+#   Ils sont exécutés localement sur station GPU (cf. docs/audits/).
+# - L'environnement de référence GPU est figé par requirements-lock.txt
+#   (`pip freeze` UTF-8, torch 2.11.0+cu128) ; la CI CPU installe le torch
+#   CPU + un sous-ensemble compatible (le lock cu128 n'est pas installable
+#   sur runners linux CPU — documenté, pas contourné).
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
-  test-cpu:
+  cpu-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,15 +28,43 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install dependencies
+      - name: Install (CPU only, no model weights)
         run: |
           pip install --upgrade pip
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install transformers accelerate pytest
+          pip install transformers safetensors pytest pyyaml
           pip install -e .
-      - name: Run CPU tests (masques, curriculum, perte)
+      - name: Unit + toy numerical tests (no GPU, no weights)
         run: |
           python -m pytest tests/unit/test_curriculum.py \
-                         tests/numerical/test_loss.py \
-                         tests/numerical/test_masks.py \
-                         --tb=short -v
+                           tests/unit/test_master.py \
+                           tests/unit/test_sampler.py \
+                           tests/unit/test_train_step.py \
+                           tests/unit/test_p1_legacy_refusal.py \
+                           tests/unit/test_jai_load.py \
+                           tests/unit/test_eval_harness.py \
+                           tests/integration/test_checkpoint.py \
+                           tests/numerical/test_masks.py \
+                           tests/numerical/test_loss.py \
+                           tests/numerical/test_p2_gdn_grad.py \
+                           tests/numerical/test_p4_strict.py \
+                           --tb=short -v
+      - name: Excluded tests (explicit, with reasons)
+        run: |
+          echo "EXCLUS de la CI CPU (runners sans GPU/poids) :"
+          echo "- tests/numerical/test_gdn_layer.py (T-GDN-01/05, Qwen3.5-0.8B + CUDA)"
+          echo "- tests/numerical/test_twostream_runner.py (runner, Qwen3.5-0.8B + CUDA)"
+          echo "- tests/numerical/test_p1_runner_train.py (P1/P2/P3, Qwen3.5-0.8B + CUDA)"
+          echo "- tests/numerical/test_two_stream.py, test_target_alignment.py, test_teacher*.py (poids + CUDA)"
+          echo "- tests/integration/test_smoke.py, test_rollout.py, test_generate.py (poids + CUDA)"
+          echo "Exécutés localement sur station GPU — cf. docs/audits/<audit-id>/REPORT.md."
+
+  oracle-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Blocked oracles (informational, never green-washed)
+        run: |
+          echo "T-GDN-03 (oracle FLARE) : BLOCKED — requiert torch 2.10.0 + fla 0.5.1 (réf : torch 2.11.0+cu128, fla absent)."
+          echo "T-LOSS-05 (parité OPDLM) : BLOCKED — requiert l'environnement OPDLM officiel (torch 2.6 + rl_sdar + GPU)."
+          echo "B0 (benchmarks qualité) : NOT RUN — aucun pilote (règle absolue n°1)."
+          echo "Ce job est INFORMATIF : il ne valide aucun oracle."

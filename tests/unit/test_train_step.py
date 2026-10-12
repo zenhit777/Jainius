@@ -39,8 +39,9 @@ class _FakeStudent:
             torch.nn.Parameter(torch.randn(1, 12, dim) * 0.5 * gain)]
         self.model.parameters = lambda: iter(self._params_list)
 
-    def forward_two_stream(self, batch):
+    def forward_two_stream(self, batch, *, allow_legacy_leaky=False):
         from jainius.model.arch import TwoStreamHidden
+        assert allow_legacy_leaky, "voie legacy explicite requise (P1)"
         h = self._params_list[-1]
         return TwoStreamHidden(h_x0=h.detach(), h_xt=h)
 
@@ -88,7 +89,7 @@ def _run_case(gain):
     traj = SimpleNamespace(x0=[1] * 8)
     stats: dict = {}
     loss = train_step(student, teacher, optim, [[2] * 4], [traj],
-                      stats=stats)
+                      stats=stats, allow_legacy_leaky=True)
     assert loss == loss and abs(loss) != float("inf")
     grads = torch.cat([p.grad.reshape(-1).float()
                        for p in student.model.parameters()

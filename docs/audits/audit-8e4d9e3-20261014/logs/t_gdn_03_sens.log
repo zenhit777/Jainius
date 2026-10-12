@@ -1,0 +1,12 @@
+# T-GDN-03 sensibilite — 2026-10-12T03:00:57Z
+# env: torch 2.10.0+cu128 triton 3.6.0 fla 0.5.1 WSL RTX5090
+B=2 T=8 H=2 K=32 V=32 BS=4 CS=64 seed=0 dtype=torch.float32 vscale=0.5: abs 1.327e-04 rel 2.231e-03 fmax 4.062e-04 refmax 5.947e-02 loc (0, 0, 1, 4)
+B=1 T=8 H=2 K=32 V=32 BS=4 CS=64 seed=1 dtype=torch.float32 vscale=0.5: abs 6.157e-05 rel 1.242e-03 fmax 3.839e-04 refmax 4.958e-02 loc (0, 3, 1, 25)
+B=2 T=16 H=4 K=64 V=64 BS=4 CS=64 seed=2 dtype=torch.float32 vscale=0.5: abs 7.803e-05 rel 1.784e-03 fmax 3.113e-04 refmax 4.373e-02 loc (1, 13, 0, 38)
+B=2 T=8 H=2 K=16 V=16 BS=8 CS=64 seed=3 dtype=torch.float32 vscale=0.5: abs 1.195e-04 rel 1.235e-03 fmax 4.568e-04 refmax 9.674e-02 loc (1, 0, 0, 4)
+B=2 T=8 H=2 K=64 V=64 BS=2 CS=64 seed=4 dtype=torch.float32 vscale=0.5: abs 5.772e-05 rel 1.286e-03 fmax 2.881e-04 refmax 4.490e-02 loc (1, 2, 0, 62)
+B=1 T=32 H=2 K=32 V=128 BS=8 CS=64 seed=5 dtype=torch.float32 vscale=0.5: abs 1.068e-04 rel 1.420e-03 fmax 4.469e-04 refmax 7.518e-02 loc (0, 12, 0, 71)
+B=2 T=8 H=2 K=32 V=32 BS=4 CS=64 seed=0 dtype=torch.float32 vscale=4.0: abs 1.061e-03 rel 2.231e-03 fmax 3.249e-03 refmax 4.757e-01 loc (0, 0, 1, 4)
+B=2 T=8 H=2 K=32 V=32 BS=4 CS=64 seed=0 dtype=torch.float16 vscale=0.5: abs 5.135e-05 rel 8.634e-04 fmax 1.473e-04 refmax 5.947e-02 loc (1, 2, 1, 22)
+B=2 T=8 H=2 K=32 V=32 BS=4 CS=64 seed=0 dtype=torch.bfloat16 vscale=0.5: abs 4.333e-04 rel 7.259e-03 fmax 1.351e-03 refmax 5.969e-02 loc (1, 2, 1, 12)
+sens_exit=0

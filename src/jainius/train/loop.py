@@ -27,7 +27,7 @@ from jainius.decode.sampler import SamplerSpec
 from jainius.distill.curriculum import rollout_length
 from jainius.distill.loss import kl_teacher_to_student
 from jainius.distill.targets import compute_teacher_targets
-from jainius.model.arch import TwoStreamBatch
+from jainius.model.arch import LegacyLeakyError, TwoStreamBatch
 from jainius.train.master import MasterOptimizer
 
 # Jeu SYNTHÉTIQUE déterministe (câblage uniquement — pas une évaluation).
@@ -82,8 +82,19 @@ def param_fingerprint(model) -> str:
 
 
 def train_step(student, teacher, optim, prompt_ids_list, trajs,
-               stats: dict | None = None) -> float:
+               stats: dict | None = None, *, runner=None,
+               allow_legacy_leaky: bool = False) -> float:
     """Un pas : 16 lignes (1 trajectoire ⇒ 1 ligne), KL moyenne, step.
+
+    P1 — voie par défaut : `TwoStreamRunner.forward_train` (différentiable,
+    sans fuite). `runner` explicite ou `student.runner` ; sinon `LegacyLeakyError`
+    sauf `allow_legacy_leaky=True` (plumbing unitaire / caractérisation).
+    Le runner reste dans le graphe autograd : aucun `detach`/`no_grad` sur
+    le chemin étudiant. `h_xt` brut → `runner.final_norm` → `lm_head`.
+
+    Voie historique `legacy_leaky` (`student.forward_two_stream`) : exclue du
+    chemin d'entraînement par défaut, refusée explicitement, accessible
+    uniquement avec `allow_legacy_leaky=True` (diagnostic isolé).
 
     Alignement `current` (OPDLM `rl_sdar.py:1266-1272,1344-1348`) :
     l'étudiant n'est PAS décalé (`student_arm_shift=False`) — la position
@@ -99,6 +110,14 @@ def train_step(student, teacher, optim, prompt_ids_list, trajs,
     """
     device = next(student.model.parameters()).device
     mask_id = student.spec.mask_token_id
+    if runner is None:
+        runner = getattr(student, "runner", None)
+    use_runner = runner is not None
+    if not use_runner and not allow_legacy_leaky:
+        raise LegacyLeakyError(
+            "train_step sans runner : le chemin historique `legacy_leaky` "
+            "(forward_two_stream) est refusé en entraînement (P1) ; fournir "
+            "`runner=TwoStreamRunner(hf_model)` ou `student.runner`.")
     optim.zero_grad()
     losses = []
     for pids, traj in zip(prompt_ids_list, trajs):
@@ -107,9 +126,20 @@ def train_step(student, teacher, optim, prompt_ids_list, trajs,
         resp = torch.zeros_like(x0, dtype=torch.bool)
         resp[0, len(pids):] = True
         xt[resp] = mask_id
-        h_s = student.forward_two_stream(
-            TwoStreamBatch(x0=x0, xt=xt, sup_mask=resp)
-        )
+        if use_runner:
+            # P1 : représentations étudiantes via le runner (graphe intact).
+            unit_block = int(student.spec.unit_block)
+            _, h_xt_raw = runner.forward_train(
+                x0, xt, unit_block=unit_block, resp_start=len(pids))
+            h_xt = runner.final_norm(h_xt_raw)
+            lm_head = runner.lm_head
+        else:
+            h_s = student.forward_two_stream(
+                TwoStreamBatch(x0=x0, xt=xt, sup_mask=resp),
+                allow_legacy_leaky=True,
+            )
+            h_xt = h_s.h_xt
+            lm_head = student.model.lm_head
         # Fonction UNIQUE des cibles (A1/B1 non miroir) : aussi appelée par
         # le test de régression — toute divergence du chemin échoue au test.
         # `output_hidden_states=True` OBLIGATOIRE : sans lui, HF renvoie
@@ -124,7 +154,7 @@ def train_step(student, teacher, optim, prompt_ids_list, trajs,
             )
             tlog = tlog.reshape(-1, tlog.shape[-1])  # [B*L, V] pour la perte
         out = kl_teacher_to_student(
-            h_s.h_xt, lambda h: student.model.lm_head(h),
+            h_xt, lambda h: lm_head(h),
             None, None, resp, chunk_tokens=1024, teacher_logits=tlog,
         )
         assert out.n_supervised == len(traj.x0)
@@ -234,11 +264,17 @@ def run_smoke(student, teacher, tokenizer, cfg: SmokeConfig, ckpt_dir) -> dict:
             trajs = rep["trajectories"][cfg.n_rollouts - 1]
         rep["gpu_seconds"][f"rollout_{step}"] = round(time.time() - t0, 2)
         # --- pas d'entraînement (factorisé, réutilisé par le test reprise) ---
+        # P1 : un runner est construit une fois sur le modèle étudiant et
+        # branché dans train_step (le chemin legacy est refusé par défaut).
         t0 = time.time()
         fp_before = param_fingerprint(student.model)
         step_stats: dict = {}
+        from jainius.model.twostream import TwoStreamRunner as _Runner
+        _runner = getattr(student, "runner", None)
+        if _runner is None:
+            _runner = _Runner(student.model)
         loss_value = train_step(student, teacher, optim, prompt_ids_list,
-                                trajs, stats=step_stats)
+                                trajs, stats=step_stats, runner=_runner)
         rep["student_train_fw"] += len(prompt_ids_list)
         rep["teacher_fw"] += len(prompt_ids_list)
         rep["grads_finite"].append(True)  # garanti par train_step (assert)

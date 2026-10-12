@@ -1,0 +1,78 @@
+Skipping import of cpp extensions due to incompatible torch version. Please upgrade to torch >= 2.11.0 (found 2.10.0+cu128).
+torch 2.10.0+cu128 | triton 3.6.0 | fla 0.5.1 | cuda True NVIDIA GeForce RTX 5090
+============================= test session starts ==============================
+platform linux -- Python 3.13.16, pytest-9.1.1, pluggy-1.6.0 -- /tmp/flare-oracle/bin/python
+cachedir: .pytest_cache
+rootdir: /mnt/d/Intelligence_Artificielle/Projects/Jainius
+configfile: pyproject.toml
+plugins: typeguard-4.6.0
+collecting ... collected 1 item
+
+tests/numerical/test_gdn_oracle.py::test_gdn_03_oracle_kernel_parity FAILED [100%]
+
+=================================== FAILURES ===================================
+_______________________ test_gdn_03_oracle_kernel_parity _______________________
+
+    @requires_flare
+    def test_gdn_03_oracle_kernel_parity():
+        from torchtitan.models.qwen3_5.model.block_gated_delta_rule.chunk import (
+            ChunkBlockCausalGatedDeltaRuleFunction as Oracle,
+        )
+        from torchtitan.models.qwen3_5.model.block_gated_delta_rule import (
+            fused_recurrent_block_causal_gated_delta_rule as fused,
+        )
+    
+        from jainius.model.gdn import gdn_run, l2norm
+    
+        torch.manual_seed(0)
+        B, T, H, K, V, BS = 2, 8, 2, 32, 32, 4
+        q = torch.randn(B, T, H, K, device="cuda", dtype=torch.float32)
+        k = torch.randn(B, T, H, K, device="cuda", dtype=torch.float32)
+        v = torch.randn(B, T, H, V, device="cuda", dtype=torch.float32) * 0.5
+        g = torch.nn.functional.logsigmoid(
+            torch.rand(B, T, H, device="cuda", dtype=torch.float32))
+        beta = torch.rand(B, T, H, device="cuda", dtype=torch.float32).sigmoid()
+        # Conventions des équations : q,k l2norm (eps 1e-6), q /= sqrt(K).
+        qn = l2norm(q) / (K ** 0.5)
+        kn = l2norm(k)
+        S0 = torch.zeros(B, H, K, V, dtype=torch.float32, device="cuda")
+    
+        out, final = Oracle.apply(qn, kn, v, g, beta, 1.0, BS, S0, True,
+                                  0, None, False, 64)
+    
+        # Référence naïve : récurrence causale par bloc, lecture depuis S_end.
+        # (o[t,v] = Σ_k S_end[k,v]·q[t,k] — somme sur K, PAS sur V.)
+        ref = torch.zeros_like(out)
+        S = S0.clone()
+        for s in range(0, T, BS):
+            e = s + BS
+            for b in range(B):
+                for hh in range(H):
+                    _, send = gdn_run(qn[b, s:e, hh], kn[b, s:e, hh],
+                                      v[b, s:e, hh], g[b, s:e, hh],
+                                      beta[b, s:e, hh], S0=S[b, hh])
+                    S[b, hh] = send
+                    ref[b, s:e, hh] = (
+                        send.unsqueeze(0)
+                        * qn[b, s:e, hh].unsqueeze(-1)).sum(1)
+        assert out.shape == ref.shape == (B, T, H, V)
+        assert torch.isfinite(out).all(), "oracle : sorties non finies"
+        amax = (out - ref).abs().max().item()
+        rmax = amax / max(ref.abs().max().item(), 1e-12)
+>       assert amax <= 1e-3 and rmax <= 1e-3, (
+            f"T-GDN-03 : écart oracle (abs {amax:.2e}, rel {rmax:.2e})")
+E       AssertionError: T-GDN-03 : écart oracle (abs 1.33e-04, rel 2.23e-03)
+E       assert (0.000132683664560318 <= 0.001 and 0.002231161820340388 <= 0.001)
+
+tests/numerical/test_gdn_oracle.py:94: AssertionError
+------------------------------ Captured log call -------------------------------
+WARNING  torchao:__init__.py:83 Skipping import of cpp extensions due to incompatible torch version. Please upgrade to torch >= 2.11.0 (found 2.10.0+cu128).
+=============================== warnings summary ===============================
+tests/numerical/test_gdn_oracle.py: 14 warnings
+  /tmp/flare-oracle/lib/python3.13/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/numerical/test_gdn_oracle.py::test_gdn_03_oracle_kernel_parity
+======================== 1 failed, 14 warnings in 6.82s ========================

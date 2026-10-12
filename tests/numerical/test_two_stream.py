@@ -38,7 +38,8 @@ def test_two_stream_shapes_finite(model_bf16, tokenizer):
     model = JainiusModel(model_bf16, DiffusionSpec())
     device = next(model_bf16.parameters()).device
     with torch.no_grad():
-        h = model.forward_two_stream(_batch(tokenizer, device))
+        h = model.forward_two_stream(_batch(tokenizer, device),
+                                     allow_legacy_leaky=True)
     assert h.h_x0.shape == h.h_xt.shape
     assert h.h_x0.shape[0] == 1 and h.h_x0.shape[2] == 1024
     assert torch.isfinite(h.h_x0).all() and torch.isfinite(h.h_xt).all()
@@ -56,7 +57,7 @@ def test_two_stream_rejects_bad_shapes(model_bf16, tokenizer):
     batch.xt = batch.xt[:, :-1]
     with pytest.raises(ValueError):
         with torch.no_grad():
-            model.forward_two_stream(batch)
+            model.forward_two_stream(batch, allow_legacy_leaky=True)
 
 
 def test_two_stream_gdn_future_leak(model_bf16, tokenizer):
@@ -81,7 +82,7 @@ def test_two_stream_gdn_future_leak(model_bf16, tokenizer):
     device = next(model_bf16.parameters()).device
     batch = _batch(tokenizer, device)
     with torch.no_grad():
-        h = model.forward_two_stream(batch)
+        h = model.forward_two_stream(batch, allow_legacy_leaky=True)
         plain = model_bf16(batch.x0, output_hidden_states=True).hidden_states[-1]
     # Tolérance bf16 large mais discriminante : le chemin explicite
     # (masque 4D + positions) accumule l'arrondi différemment du chemin
@@ -96,7 +97,8 @@ def test_two_stream_gdn_future_leak(model_bf16, tokenizer):
     altered[0, -1] = (altered[0, -1] + 1) % 248320
     with torch.no_grad():
         h2 = model.forward_two_stream(
-            TwoStreamBatch(x0=altered, xt=batch.xt, sup_mask=batch.sup_mask)
+            TwoStreamBatch(x0=altered, xt=batch.xt, sup_mask=batch.sup_mask),
+            allow_legacy_leaky=True,
         )
     leak = (h.h_xt[0, l0:] - h2.h_xt[0, l0:]).abs().max().item()
     assert leak > 0, "fuite GDN attendue mais non observée (H-02 ?)"
@@ -107,7 +109,8 @@ def test_two_stream_gdn_future_leak(model_bf16, tokenizer):
     xt_alt[0, :l0] = (xt_alt[0, :l0] + 7) % 248320
     with torch.no_grad():
         h3 = model.forward_two_stream(
-            TwoStreamBatch(x0=batch.x0, xt=xt_alt, sup_mask=batch.sup_mask)
+            TwoStreamBatch(x0=batch.x0, xt=xt_alt, sup_mask=batch.sup_mask),
+            allow_legacy_leaky=True,
         )
     leak_xt = (h.h_xt[0, l0:] - h3.h_xt[0, l0:]).abs().max().item()
     assert leak_xt > 0, "fuite intra-xt absente (inattendu, cf. H-02)"
@@ -128,11 +131,12 @@ def test_two_stream_gdn_leak_variants(tokenizer):
         n_resp = 4
         l0 = batch.x0.shape[1] - n_resp
         with torch.no_grad():
-            h = model.forward_two_stream(batch)
+            h = model.forward_two_stream(batch, allow_legacy_leaky=True)
             altered = batch.x0.clone()
             altered[0, -1] = (altered[0, -1] + 1) % 248320
             h2 = model.forward_two_stream(
-                TwoStreamBatch(x0=altered, xt=batch.xt, sup_mask=batch.sup_mask))
+                TwoStreamBatch(x0=altered, xt=batch.xt, sup_mask=batch.sup_mask),
+                allow_legacy_leaky=True)
         leak = (h.h_xt[0, l0:] - h2.h_xt[0, l0:]).abs().max().item()
         assert leak > 0, "fuite absente en fp32/1 bloc (inattendu)"
     finally:

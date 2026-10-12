@@ -169,11 +169,13 @@ def test_runner_no_leak_characterization():
         sup = torch.zeros_like(x0, dtype=torch.bool)
         sup[0, l0:] = True
         h_old = legacy.forward_two_stream(
-            TwoStreamBatch(x0=x0, xt=xt, sup_mask=sup)).h_xt
+            TwoStreamBatch(x0=x0, xt=xt, sup_mask=sup),
+            allow_legacy_leaky=True).h_xt
         x0b = x0.clone()
         x0b[0, -1] = (x0b[0, -1] + 1) % 248320
         h_old_b = legacy.forward_two_stream(
-            TwoStreamBatch(x0=x0b, xt=xt, sup_mask=sup)).h_xt
+            TwoStreamBatch(x0=x0b, xt=xt, sup_mask=sup),
+            allow_legacy_leaky=True).h_xt
         leak_old = (h_old[0, l0:] - h_old_b[0, l0:]).abs().max().item()
 
         # Chemin NOUVEAU (runner planifié) — fuite ABSENTE :

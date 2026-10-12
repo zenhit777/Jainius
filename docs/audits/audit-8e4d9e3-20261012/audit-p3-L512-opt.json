@@ -1,0 +1,28 @@
+{
+  "env": {
+    "python": "3.13.15",
+    "torch": "2.11.0+cu128",
+    "transformers": "5.17.0",
+    "cuda_available": true,
+    "device": "NVIDIA GeForce RTX 5090",
+    "dtype": "bfloat16",
+    "batch": 1,
+    "unit_block": 4,
+    "resp_start": 0,
+    "seed": 0
+  },
+  "n_trainable_params": 752393024,
+  "n_layers": 24,
+  "results": {
+    "L512/optimized": {
+      "status": "OK",
+      "times": [
+        322.44287460000487
+      ],
+      "peaks_gb": [
+        34.3994402885437
+      ],
+      "loss": 0.208984375
+    }
+  }
+}

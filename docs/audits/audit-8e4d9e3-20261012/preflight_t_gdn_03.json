@@ -1,0 +1,32 @@
+{
+  "test": "T-GDN-03 (oracle FLARE two-stream)",
+  "verdict": "BLOCKED",
+  "rule": "Si environnement/noyaux non exécutables : BLOCKED, ne pas substituer.",
+  "environment": {
+    "python": "3.13.15",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "cuda_available": true,
+    "torch_installed": "2.11.0+cu128",
+    "torch_required": "2.10.0",
+    "torch_ok": false,
+    "fla_installed": null,
+    "fla_required": "0.5.1",
+    "fla_ok": false
+  },
+  "oracle_checkout": {
+    "path": "D:\\Intelligence_Artificielle\\Projects\\Jainius\\_artefacts\\oracles\\FLARE",
+    "exists": true,
+    "kernels": {
+      "chunk_two_stream_wy.py": true,
+      "chunk_fla_style_wy.py": true,
+      "fused_recurrent.py": true,
+      "README.md": true
+    },
+    "kernels_present": true
+  },
+  "executable": false,
+  "reason_if_blocked": [
+    "torch 2.11.0+cu128 ≠ exigé 2.10.0 ; fla absent ≠ exigé 0.5.1"
+  ],
+  "note": "Aucun code FLARE copié dans src/ (LIC-1). Le préflight ne teste que l'environnement et l'existance des fichiers."
+}

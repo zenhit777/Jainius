@@ -1,0 +1,33 @@
+🚨 Config not found for sdar. You can manually add it to HARDCODED_CONFIG_FOR_MODELS in utils/args_doc.py
+🚨 Config not found for sdar. You can manually add it to HARDCODED_CONFIG_FOR_MODELS in utils/args_doc.py
+🚨 `store_kv` is part of SDARModel.forward's signature, but not documented. Make sure to add it to the docstring of the function in /mnt/d/Intelligence_Artificielle/Projects/Jainius/_artefacts/oracles/OPDLM/models/sdar/modeling_sdar.py.
+🚨 Config not found for sdar. You can manually add it to HARDCODED_CONFIG_FOR_MODELS in utils/args_doc.py
+🚨 Config not found for sdar. You can manually add it to HARDCODED_CONFIG_FOR_MODELS in utils/args_doc.py
+🚨 Config not found for sdar. You can manually add it to HARDCODED_CONFIG_FOR_MODELS in utils/args_doc.py
+mask_token_id = 151669 pad = 151643 extended (1, 28)
+dtypes: torch.float32 torch.float32 
+teach_simple row0 top5: [60, 13789, 936, 8526, 12] [-1.802, -3.302, -3.677, -4.177, -4.364]
+official row0 top5: [60, 13789, 936, 8526, 12] [-1.802, -3.302, -3.677, -4.177, -4.364]
+attn_impl: sdpa
+mini20 vs recorded-sliced: 0.0 mini20 vs plain: 0.5
+teach_in shapes: {'input_ids': (1, 28), 'attention_mask': (1, 1, 28, 28), 'position_ids': (1, 28)} mask dtype: torch.bfloat16
+teach mask row0: [0.0, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf]
+teach mask row12: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf]
+teach mask row20: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, 0.0, -inf, -inf, -inf, -inf, -inf, -inf, -inf]
+Traceback (most recent call last):
+  File "/mnt/d/Intelligence_Artificielle/Projects/Jainius/scripts/t_loss_05_parity.py", line 502, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/mnt/d/Intelligence_Artificielle/Projects/Jainius/scripts/t_loss_05_parity.py", line 485, in main
+    l_ours = student_ours.lm_head(h_xt_ours).float()
+             ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/sjteb/.venvs/opdlm-parity/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/sjteb/.venvs/opdlm-parity/lib/python3.13/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/sjteb/.venvs/opdlm-parity/lib/python3.13/site-packages/torch/nn/modules/linear.py", line 134, in forward
+    return F.linear(input, self.weight, self.bias)
+           ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: expected mat1 and mat2 to have the same dtype, but got: c10::BFloat16 != float
+exit=1
