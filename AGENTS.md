@@ -270,6 +270,12 @@ Ne pas contourner une erreur de sécurité, de licence, de permission ou de vali
 ## 13. Git, commits et publication distante
 
 L'agent est autorisé à effectuer des commits locaux dans le périmètre de travail autorisé.
+**Commit automatique** : à la fin de chaque intervention autorisée ayant modifié des
+fichiers versionnés, l'agent effectue un commit local sans demander d'autorisation
+supplémentaire, à condition que les validations adaptées aient réussi. Un seul commit
+par intervention, regroupant uniquement les fichiers de celle-ci. Aucun commit si
+l'intervention a échoué, si les validations échouent, ou si des fichiers non liés à
+la tâche devraient être inclus. Le push reste interdit (ci-dessous).
 
 L'utilisateur conserve exclusivement le contrôle de la publication vers les dépôts distants.
 
