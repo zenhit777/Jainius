@@ -27,7 +27,7 @@ DATASETS = {
               "version": "1.0", "split": "test"},
     "math500": {"hf_id": "HuggingFaceH4/MATH-500", "version": "1.0",
                 "split": "test"},
-    "mmlu": {"hf_id": "cais/mmlu", "version": "1.0", "split": "test"},
+    "mmlu": {"hf_id": "cais/mmlu", "config": "all", "version": "1.0", "split": "test"},
     "mmlu_pro": {"hf_id": "TIGER-Lab/MMLU-Pro", "version": "1.0",
                  "split": "test"},
     "ifeval": {"hf_id": "google/IFEval", "version": "1.0",
