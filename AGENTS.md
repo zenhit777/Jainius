@@ -231,23 +231,35 @@ Règles de gestion :
 
 Le `.gitignore` doit exclure `.env` et `_artefacts/`. L'agent doit vérifier l'état réel de Git : un fichier déjà suivi peut continuer à être versionné malgré une règle d'exclusion.
 
-## 11. Qdrant et services locaux
+## 11. Services locaux (Qdrant, moteurs de serving sous Docker)
 
-Un conteneur Qdrant peut être disponible dans l'environnement Docker sous WSL. Sa présence, son état, ses ports et son accessibilité doivent être vérifiés avant toute utilisation.
+Des conteneurs Docker peuvent être disponibles dans l'environnement WSL
+(Qdrant, moteurs de serving tels que SGLang, vLLM, llmd). Leur présence,
+leur état, leurs ports et leur accessibilité doivent être vérifiés AVANT
+toute utilisation — via `scripts/check_env.sh` ou `docker ps` / `docker images`.
+
+Règle d'installation : **ne jamais installer un moteur de serving ou
+d'évaluation dans un venv Python tant qu'une image Docker correspondante
+existe sur la machine**. Vérifier d'abord `docker images`. Toute
+information d'environnement donnée par l'utilisateur (services, conteneurs,
+matériel) doit être écrite IMMÉDIATEMENT dans `docs/environnement.md`
+(ou AGENTS.md si elle est permanente) — une information non persistée
+dans une session est une information perdue pour les sessions suivantes.
 
 L'agent ne doit pas :
-- supposer que le service est démarré ;
+- supposer qu'un service ou un conteneur est démarré ;
 - démarrer, arrêter, recréer ou supprimer un conteneur sans nécessité liée à la tâche et sans vérifier les conséquences ;
 - effacer une collection ou des données existantes sans autorisation explicite ;
 - exposer un service local sur une interface réseau plus large que nécessaire ;
-- enregistrer des identifiants ou des secrets dans les rapports.
+- enregistrer les identifiants ou les secrets dans les rapports.
 
 Les index, caches, extractions et autres données reconstructibles restent dans `_artefacts/` ou dans le stockage local prévu à cet effet.
 
 Le code du projet ne doit pas dépendre de Qdrant pour les fonctions qui peuvent raisonnablement fonctionner sans lui. Toute fonctionnalité de recherche documentaire doit gérer proprement l'indisponibilité du service lorsque le contrat de la tâche exige ce comportement.
 
-L'utilisation de Qdrant, d'un modèle d'embeddings ou d'une architecture RAG doit répondre à un besoin démontré. Les choix de modèles, de découpage et de recherche doivent être documentés et évaluables.
+L'utilisation de Qdrant, d'un moteur de serving ou d'une architecture RAG doit répondre à un besoin démontré. Les choix de modèles, de découpage et de recherche doivent être documentés et évaluables.
 
+Mesures de performance : exécuter `scripts/check_env.sh` avant chaque mesure et archiver sa sortie avec les résultats — une mesure de débit/latence n'est valable que sur GPU vérifié vide (aucun process compute).
 ## 12. Sécurité et opérations à risque
 
 Avant toute opération destructive ou difficilement réversible, l'agent doit identifier précisément les fichiers, données, services ou ressources affectés.
