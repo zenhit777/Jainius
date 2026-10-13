@@ -1,3 +1,4 @@
+> Prérequis REMPLACÉ par le jalon J2 du PRD (voir DECISIONS.md §C-6).
 # Prérequis M5 — quel `causal_mode` le serving FLARE emploie-t-il à l'inférence ?
 
 **Statut** : FAIT ÉTABLI (lecture seule du checkout FLARE `6ca547a`,

@@ -1,3 +1,4 @@
+> ARCHIVÉ le 2026-10-14 — remplacé par docs/PRD.md et docs/DECISIONS.md. Historique et traçabilité des tests uniquement. Ne jamais citer comme justification.
 # Cahier technique — Jainius
 
 ## 1. Métadonnées et statut du document

@@ -1,46 +1,52 @@
 # AGENTS.md — Jainius
 
+## 0. Autorité des documents et décisions verrouillées (lire en premier)
+
+Hiérarchie, du plus au moins prioritaire :
+1. `docs/PRD.md` : objectif, exigences, critères de réussite, jalons.
+2. `docs/DECISIONS.md` : décisions verrouillées et arbitrages déjà rendus.
+3. `AGENTS.md` : règles de fonctionnement.
+4. `docs/decisions/*.md` : décisions de détail, valables tant qu'elles ne contredisent pas 1 et 2 (un en-tête « OBSOLÈTE » fait foi).
+5. `docs/ARCHITECTURE.md` (à produire après le jalon J3) : description de l'existant, vérifiée sur le code.
+6. `docs/archive/` : ancien cahier des charges, ancien cahier technique. Historique uniquement. **Ne jamais citer ces documents pour justifier un choix de conception.**
+
+Règles permanentes :
+- **R0.1 Début de session** : lire le PRD et DECISIONS.md. Annoncer en cinq lignes maximum l'objectif du projet et l'exigence du PRD (G1 à G5, jalon J1 à J5) que la tâche sert.
+- **R0.2 Décisions verrouillées** : ne jamais les rouvrir, les contourner ni leur substituer une variante. Si l'agent estime l'une d'elles infaisable, il écrit dans `docs/PROPOSITIONS.md` le fait établi, la preuve et une alternative, puis continue sur ce qui n'est pas concerné.
+- **R0.3 Avant toute question à l'utilisateur** : chercher dans `docs/DECISIONS.md`. Ne jamais redemander une décision déjà rendue.
+- **R0.4 Arbitrages** : au plus 3 par compte rendu, chacun avec une recommandation par défaut. Si le choix est réversible, l'agent applique le défaut, l'inscrit dans DECISIONS.md (statut PAR DÉFAUT) et continue. Toute réponse de l'utilisateur est inscrite dans DECISIONS.md immédiatement.
+- **R0.5 Lien avec le PRD** : toute tâche doit servir une exigence du PRD. Un travail sans lien (durcissement de tests périphériques, métriques annexes, audits de clôture répétés) n'est fait que sur demande explicite. Au plus un audit de clôture par jalon.
+- **R0.6 Contradiction** : le document de rang supérieur gagne sans arbitrage. L'agent annote le document de rang inférieur dans la même intervention.
+- **R0.7 Compte rendu** : français simple, sans identifiant non expliqué, selon ce plan : TERMINÉ / PAS TERMINÉ / DÉCISIONS DEMANDÉES (3 maximum) / PROCHAINE ÉTAPE. Le détail technique va dans le fichier d'audit, pas dans le message. Un jalon n'est déclaré terminé que si tous ses critères de sortie du PRD sont vérifiés.
+
 ## 1. Mission et rôle
 
-Jainius vise à convertir un modèle de langage hybride autorégressif fondé sur Qwen3.5 en modèle de diffusion, avec un entraînement aussi léger que possible, une compatibilité native avec SGLang et une qualité de raisonnement au moins équivalente à celle du modèle source.
+Jainius convertit un LLM autorégressif hybride (Qwen3.5) en modèle de diffusion par blocs, selon `docs/PRD.md` : architecture double flux de FLARE, distillation on-policy d'OPDLM, serving natif par le fork SGLang de FLARE, entraînement très léger, débit comparable à DiffusionGemma, raisonnement conservé.
 
-L'agent agit comme architecte d'implémentation et ingénieur logiciel au service de cet objectif. Il prend les décisions d'implémentation nécessaires dans le périmètre qui lui est confié, sans déléguer à l'utilisateur les investigations techniques relevant de son expertise.
+L'agent agit comme architecte d'implémentation et ingénieur logiciel au service de cet objectif. Il prend les décisions d'implémentation nécessaires dans le périmètre confié, sans déléguer à l'utilisateur les investigations techniques relevant de son expertise.
 
 L'agent doit privilégier :
 - les preuves expérimentales plutôt que les suppositions ;
 - les changements minimaux, maîtrisés et réversibles ;
 - la reproductibilité des résultats ;
 - la traçabilité des décisions et des expériences ;
-- la réutilisation justifiée des composants existants ;
-- la compatibilité avec l'architecture cible et son environnement d'exécution.
+- la compatibilité avec le fork SGLang de FLARE et l'environnement d'exécution cible.
 
 La progression apparente du projet ne constitue jamais une priorité supérieure à la validité technique des résultats.
 
 ## 2. Documents de référence
 
-Avant toute intervention, l'agent examine les documents pertinents disponibles dans le dépôt.
+Avant toute intervention, l'agent lit `docs/PRD.md` et `docs/DECISIONS.md`, puis les documents pertinents pour la tâche :
 
-Organisation documentaire de référence :
+- `docs/decisions/` : décisions de détail et audits (`docs/audits/`).
+- `docs/environnement.md` : matériel, conteneurs, environnements Python.
+- `docs/arxiv/` : publications originales au format PDF.
+- `docs/STM_7_PUBLICATIONS.md` : synthèse documentaire des sept publications (aide à la lecture, pas une source de décision).
+- `docs/archive/` : historique (voir R0 ci-dessus).
 
-- `AGENTS.md` : règles permanentes de fonctionnement des agents.
-- `docs/Cahier_des_charges.md` : objectifs et exigences du projet, sous réserve de confirmation du nom exact présent dans le dépôt.
-- `docs/CAHIER_TECHNIQUE_JAINIUS.md` : architecture, spécifications et exigences techniques.
-- `docs/STM_7_PUBLICATIONS.md` : synthèse documentaire des sept publications.
-- `docs/arxiv/` : publications scientifiques originales au format PDF.
-- `docs/` : autres documents de référence du projet.
+L'agent ne suppose pas qu'un fichier existe ou est à jour sans l'avoir vérifié. Il distingue une affirmation de synthèse, une publication, du code lu et un résultat mesuré localement.
 
-Les chemins et noms ci-dessus doivent être vérifiés dans le dépôt réel. L'agent ne doit pas supposer qu'un fichier existe, qu'il est à jour ou qu'il correspond à son intitulé sans l'avoir vérifié.
-
-Les documents techniques, publications, code source et résultats expérimentaux constituent des sources de nature différente. L'agent doit les distinguer et ne pas présenter une affirmation issue d'une synthèse comme si elle avait été démontrée par une expérience locale.
-
-En cas de contradiction entre documents :
-1. identifier précisément les passages contradictoires ;
-2. déterminer si une décision antérieure documentée tranche déjà la question ;
-3. préserver les travaux et résultats existants ;
-4. proposer une résolution argumentée si aucune décision ne s'applique ;
-5. demander une arbitrage uniquement lorsqu'il est réellement nécessaire.
-
-Ne jamais résoudre silencieusement une contradiction susceptible de modifier l'architecture, les résultats ou les critères d'acceptation.
+Contradiction entre documents : appliquer R0.6 ; en cas de doute entre deux documents de même rang, identifier les passages, préserver les travaux existants, proposer une résolution et demander un arbitrage seulement si nécessaire. Ne jamais résoudre silencieusement une contradiction susceptible de modifier l'architecture, les résultats ou les critères d'acceptation.
 
 ## 3. Portée des instructions et autonomie
 
@@ -71,39 +77,36 @@ Lorsqu'une ambiguïté n'empêche pas de progresser sans risque, l'agent adopte 
 
 ## 4. Décisions techniques validées
 
-Les décisions explicites déjà consignées dans les documents de référence doivent être respectées tant qu'elles ne sont pas remplacées par une décision ultérieure dûment autorisée.
-
-Pour Jainius, les règles suivantes s'appliquent :
+Le détail et l'historique sont dans `docs/DECISIONS.md`. Rappel de ce qui structure le code :
 
 ### 4.1 Modèle cible
 
-- Le modèle principal du projet est Qwen3.5-0.8B.
-- Qwen3-0.6B peut être utilisé comme banc d'essai auxiliaire si cela apporte un bénéfice expérimental concret.
-- Les résultats obtenus sur un modèle auxiliaire ne remplacent pas les validations exigées sur Qwen3.5-0.8B.
-- Toute différence architecturale entre les modèles doit être prise en compte avant de transférer une conclusion de l'un à l'autre.
+- Le modèle principal est Qwen3.5-0.8B. Qwen3-0.6B peut servir de banc d'essai auxiliaire.
+- Un résultat sur un modèle auxiliaire ne remplace pas la validation sur Qwen3.5-0.8B ; toute différence architecturale est prise en compte avant de transférer une conclusion.
 
-### 4.2 OPDLM et FLARE
+### 4.2 FLARE et OPDLM (D-01, D-02, D-03)
 
-- OPDLM est la voie privilégiée pour étudier la conversion et la distillation.
-- Les composants FLARE peuvent être examinés et utilisés comme référence numérique lorsque cela est compatible avec leur licence et avec les règles de la tâche.
-- La réutilisation du code FLARE dans le code source Jainius exige une vérification préalable de la licence, de la compatibilité technique et des dépendances.
-- Les résultats de référence, les observations tirées du code et les composants effectivement réutilisés doivent être distingués.
+- **Diffusion : FLARE seul.** Double flux, masques, planification des états GDN, convention de logits `shifted`, décodage Diffusion-Trust, fork SGLang.
+- **Entraînement : distillation on-policy d'OPDLM seule.** Rollouts de l'étudiant, états intermédiaires, cibles de l'enseignant AR gelé, KL enseignant → étudiant, curriculum de longueur.
+- Ne reprendre ni l'objectif `L_AR + L_diff` de FLARE, ni la conversion d'attention d'OPDLM.
+- Usage privé non commercial : le code FLARE peut être repris. Conserver `LICENSE` et `Required Notice` dans tout répertoire qui en contient ; ne rien distribuer sans réexamen. Distinguer dans les rapports le code repris, le code lu et le code réécrit.
 
 ### 4.3 Convention des logits
 
-- La convention `current` est la convention de référence de la baseline OPDLM.
-- La convention `shifted` reste isolée dans une branche expérimentale distincte.
-- L'agent ne doit pas basculer d'une convention à l'autre sans autorisation explicite.
-- Toute expérimentation impliquant un décalage des logits doit valider numériquement l'alignement entre les prédictions, les cibles et les positions supervisées avant d'entreprendre une comparaison de qualité.
+- La convention de production est `shifted` (D-02). La convention `current` est gelée : son code reste en place, il n'est plus étendu.
+- La règle d'alignement des cibles sous `shifted` doit être établie et validée numériquement (jalon J2) avant toute comparaison de qualité.
 
 ### 4.4 État récurrent et GDN
 
-- La sémantique de l'état récurrent est une propriété critique de l'architecture.
-- Les états, caches et contextes doivent respecter la sémantique du modèle source et le comportement attendu pendant l'inférence et l'entraînement.
-- Une génération de texte plausible ne prouve pas la correction de l'état récurrent.
-- Toute divergence numérique non expliquée sur un chemin critique doit être résolue ou explicitement acceptée avant de poursuivre les opérations qui en dépendent.
+- La sémantique de l'état récurrent est une propriété critique. Une génération plausible ne prouve pas sa correction.
+- Toute divergence numérique non expliquée sur un chemin critique est résolue ou explicitement acceptée avant de poursuivre ce qui en dépend.
 
-Ces décisions ne donnent pas, à elles seules, l'autorisation d'exécuter un entraînement, une conversion ou une expérience. Le périmètre de chaque intervention reste déterminé par le prompt courant.
+### 4.5 Serving (D-04)
+
+- La cible est le fork SGLang de FLARE, utilisé tel quel. Notre forward d'entraînement s'aligne sur son comportement natif, et non l'inverse.
+- Une mesure de débit n'est valable que sur GPU vérifié vide (§11).
+
+Ces décisions n'autorisent pas à elles seules un entraînement ou une conversion : le périmètre de chaque intervention est fixé par le prompt courant.
 
 ## 5. Qualité du code et architecture
 
@@ -260,6 +263,7 @@ Le code du projet ne doit pas dépendre de Qdrant pour les fonctions qui peuvent
 L'utilisation de Qdrant, d'un moteur de serving ou d'une architecture RAG doit répondre à un besoin démontré. Les choix de modèles, de découpage et de recherche doivent être documentés et évaluables.
 
 Mesures de performance : exécuter `scripts/check_env.sh` avant chaque mesure et archiver sa sortie avec les résultats — une mesure de débit/latence n'est valable que sur GPU vérifié vide (aucun process compute).
+
 ## 12. Sécurité et opérations à risque
 
 Avant toute opération destructive ou difficilement réversible, l'agent doit identifier précisément les fichiers, données, services ou ressources affectés.

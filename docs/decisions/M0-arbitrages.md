@@ -1,3 +1,4 @@
+> M0-D1 (convention current), M0-D2 et LIC-1 « ouverte » sont REMPLACÉS par D-01 et D-02 de docs/DECISIONS.md.
 # Registre des décisions — M0 (arbitrages documentaires)
 
 Date : 2026-10-11. Statut : LIC-1 tranchée (usage privé non commercial, § ci-dessous) ; E1 reste ouverte.

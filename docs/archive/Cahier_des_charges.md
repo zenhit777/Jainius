@@ -1,3 +1,4 @@
+> ARCHIVÉ le 2026-10-14 — remplacé par docs/PRD.md et docs/DECISIONS.md. Historique et traçabilité des tests uniquement. Ne jamais citer comme justification.
 # Cahier des charges technique — Jainius
 
 Version 1.0 · 9 octobre 2026 · Document de référence pour la conception, l'implémentation et la validation

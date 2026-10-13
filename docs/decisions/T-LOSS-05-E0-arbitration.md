@@ -1,3 +1,4 @@
+> OBSOLÈTE en portée : test gelé (voir DECISIONS.md §C-1). Seuil retenu : 0,1.
 # Décision — T-LOSS-05 : arbitrage de tolérance E0 (parité câblage)
 
 **Statut** : **ACCEPTÉE** (arbitrage utilisateur du 2026-10-13).

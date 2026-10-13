@@ -1,3 +1,4 @@
+> Budgets ADOPTÉS (voir DECISIONS.md §C-2).
 # Décision (PROPOSÉE) — Budgets A-008 (mémoire GPU) et A-009 (coût de conversion)
 
 **Statut** : **PROPOSÉ** (clôture B5, 2026-10-13 — à arbitrer par
