@@ -1,0 +1,184 @@
+﻿python -m pytest tests/ -v
+9ecab1a6743e40ba8d12a67a773edfd4a5c0e543
+memory.used [MiB], utilization.gpu [%]
+861 MiB, 2 %
+PYTEST_EXIT:1
+memory.used [MiB], utilization.gpu [%]
+665 MiB, 4 %
+===== PYTEST OUTPUT =====
+============================= test session starts =============================
+platform win32 -- Python 3.13.15, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\sjteb\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: D:\Intelligence_Artificielle\Projects\Jainius
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collecting ... collected 130 items
+
+tests/integration/test_checkpoint.py::test_ckpt_01_resume_bitexact PASSED [  0%]
+tests/integration/test_checkpoint.py::test_ckpt_01_resume_mismatch_refused PASSED [  1%]
+tests/integration/test_checkpoint.py::test_ckpt_master_roundtrip_and_fields PASSED [  2%]
+tests/integration/test_checkpoint.py::test_ckpt_masters_missing_rejected PASSED [  3%]
+tests/integration/test_checkpoint.py::test_ckpt_code_sha_mismatch_refused PASSED [  3%]
+tests/integration/test_checkpoint.py::test_ckpt_code_sha_force_accepted PASSED [  4%]
+tests/integration/test_checkpoint.py::test_ckpt_resume_gpu_n_vs_k PASSED [  5%]
+tests/integration/test_generate.py::test_gen_01_complete_generation PASSED [  6%]
+tests/integration/test_rollout.py::test_roll_01_same_seed_same_trajectory PASSED [  6%]
+tests/integration/test_rollout.py::test_roll_01_different_seed_noted PASSED [  7%]
+tests/integration/test_rollout.py::test_roll_02_dynamic_tau_gt_1_is_static PASSED [  8%]
+tests/integration/test_rollout.py::test_rollout_causal_intra_block PASSED [  9%]
+tests/integration/test_rollout.py::test_traj_weight_version_detects_stale PASSED [ 10%]
+tests/integration/test_smoke.py::test_smoke_wiring PASSED                [ 10%]
+tests/integration/test_smoke.py::test_smoke_resume PASSED                [ 11%]
+tests/numerical/test_ar_equivalence.py::test_ar_01_full_vs_cached PASSED [ 12%]
+tests/numerical/test_gdn_batched.py::test_gdn_02_block_order_invariance PASSED [ 13%]
+tests/numerical/test_gdn_layer.py::test_gdn_01_naive_vs_hf_causal PASSED [ 13%]
+tests/numerical/test_gdn_layer.py::test_gdn_05_gradient_noisy_to_clean PASSED [ 14%]
+tests/numerical/test_gdn_layer.py::test_gdn_05_noisy_block_end_read PASSED [ 15%]
+tests/numerical/test_gdn_oracle.py::test_gdn_03_oracle_kernel_parity FAILED [ 16%]
+tests/numerical/test_gdn_reference.py::test_gdn_01_layer_map_and_determinism PASSED [ 16%]
+tests/numerical/test_gdn_reference.py::test_gdn_blocked_oracle_and_two_stream SKIPPED [ 17%]
+tests/numerical/test_gdn_vectorized.py::test_vectorized_core_bitexact_and_grads PASSED [ 18%]
+tests/numerical/test_gdn_vectorized.py::test_vectorized_noisy_block_bitexact_and_grads PASSED [ 19%]
+tests/numerical/test_gdn_vectorized.py::test_doc_positions_match_brute_force PASSED [ 20%]
+tests/numerical/test_gdn_vectorized.py::test_doc_segments_match_brute_force PASSED [ 20%]
+tests/numerical/test_loss.py::test_loss_01_vs_naive_and_properties PASSED [ 21%]
+tests/numerical/test_loss.py::test_loss_02_chunk_and_topk_coherence PASSED [ 22%]
+tests/numerical/test_loss.py::test_loss_03_masking_normalization_nonfinite PASSED [ 23%]
+tests/numerical/test_loss.py::test_loss_04_finite_difference_gradient PASSED [ 23%]
+tests/numerical/test_loss.py::test_loss_chunked_backward_equals_simple PASSED [ 24%]
+tests/numerical/test_loss.py::test_loss_backward_memory_bounded_large PASSED [ 25%]
+tests/numerical/test_loss.py::test_loss_05_official_parity SKIPPED (...) [ 26%]
+tests/numerical/test_masks.py::test_mask_01_truth_table[8-2] PASSED      [ 26%]
+tests/numerical/test_masks.py::test_mask_01_truth_table[8-3] PASSED      [ 27%]
+tests/numerical/test_masks.py::test_mask_01_truth_table[12-4] PASSED     [ 28%]
+tests/numerical/test_masks.py::test_mask_02_doc_isolation PASSED         [ 29%]
+tests/numerical/test_masks.py::test_mask_03_visibility_rules PASSED      [ 30%]
+tests/numerical/test_p1_runner_train.py::test_p1_train_step_uses_runner_and_grads PASSED [ 30%]
+tests/numerical/test_p1_runner_train.py::test_p1_runner_no_leak_loss_invariant PASSED [ 31%]
+tests/numerical/test_p1_runner_train.py::test_p2_forward_train_all_gdn_layers_receive_grads PASSED [ 32%]
+tests/numerical/test_p1_runner_train.py::test_p3_quadratic_vs_optimized_equivalence PASSED [ 33%]
+tests/numerical/test_p2_gdn_grad.py::test_p2_forward_clean_grads_finite_diff PASSED [ 33%]
+tests/numerical/test_p2_gdn_grad.py::test_p2_forward_noisy_block_grads_finite_diff PASSED [ 34%]
+tests/numerical/test_p4_strict.py::test_p4_gdn02_batched_is_sequential_fp64 PASSED [ 35%]
+tests/numerical/test_p4_strict.py::test_p4_gdn04_packing_reset_fp64 PASSED [ 36%]
+tests/numerical/test_p4_strict.py::test_p4_noisy_block_no_future_leak_fp64 PASSED [ 36%]
+tests/numerical/test_target_alignment.py::test_alignment_wiring_vs_manual PASSED [ 37%]
+tests/numerical/test_target_alignment.py::test_train_step_targets_match_reference PASSED [ 38%]
+tests/numerical/test_target_alignment.py::test_alignment_shift_sensitivity PASSED [ 39%]
+tests/numerical/test_target_alignment.py::test_alignment_shift_trap_documented PASSED [ 40%]
+tests/numerical/test_target_alignment.py::test_prompt_context_delta_characterized PASSED [ 40%]
+tests/numerical/test_teacher.py::test_teach_01_frozen PASSED             [ 41%]
+tests/numerical/test_teacher.py::test_teach_02_clean_fill_parity PASSED  [ 42%]
+tests/numerical/test_teacher_extended_blocked.py::test_teacher_extended_cleanfill_blocked_on_hybrid XFAIL [ 43%]
+tests/numerical/test_two_stream.py::test_two_stream_shapes_finite PASSED [ 43%]
+tests/numerical/test_two_stream.py::test_two_stream_rejects_shifted PASSED [ 44%]
+tests/numerical/test_two_stream.py::test_two_stream_rejects_bad_shapes PASSED [ 45%]
+tests/numerical/test_two_stream.py::test_two_stream_gdn_future_leak PASSED [ 46%]
+tests/numerical/test_two_stream.py::test_two_stream_gdn_leak_variants PASSED [ 46%]
+tests/numerical/test_twostream_runner.py::test_runner_clean_matches_hf PASSED [ 47%]
+tests/numerical/test_twostream_runner.py::test_runner_no_leak_desired_property PASSED [ 48%]
+tests/numerical/test_twostream_runner.py::test_runner_no_leak_characterization PASSED [ 49%]
+tests/numerical/test_twostream_runner.py::test_gdn_02_batched_is_sequential PASSED [ 50%]
+tests/numerical/test_twostream_runner.py::test_gdn_04_packing_reset PASSED [ 50%]
+tests/numerical/test_twostream_runner.py::test_denoise_reads_end_state PASSED [ 51%]
+tests/numerical/test_twostream_runner.py::test_denoise_no_write PASSED   [ 52%]
+tests/unit/test_b0_runner.py::test_extract_boxed_nested_braces PASSED    [ 53%]
+tests/unit/test_b0_runner.py::test_extract_boxed_last_of_multiple PASSED [ 53%]
+tests/unit/test_b0_runner.py::test_extract_boxed_none_or_unclosed PASSED [ 54%]
+tests/unit/test_b0_runner.py::test_normalize_math_leftright_and_punctuation PASSED [ 55%]
+tests/unit/test_b0_runner.py::test_score_math500_leftright_boxed_parity PASSED [ 56%]
+tests/unit/test_b0_runner.py::test_score_math500_wrong_answer PASSED     [ 56%]
+tests/unit/test_b0_runner.py::test_score_gsm8k_hash_marker_priority PASSED [ 57%]
+tests/unit/test_b0_runner.py::test_score_gsm8k_fallback_last_number PASSED [ 58%]
+tests/unit/test_b0_runner.py::test_score_mmlu_letter PASSED              [ 59%]
+tests/unit/test_b0_runner.py::test_score_mmlu_pro_letter PASSED          [ 60%]
+tests/unit/test_b0_runner.py::test_ifeval_punctuation_no_comma PASSED    [ 60%]
+tests/unit/test_b0_runner.py::test_ifeval_number_words_relations PASSED  [ 61%]
+tests/unit/test_b0_runner.py::test_ifeval_keywords_existence_forbidden PASSED [ 62%]
+tests/unit/test_b0_runner.py::test_ifeval_keyword_frequency PASSED       [ 63%]
+tests/unit/test_b0_runner.py::test_ifeval_letter_frequency PASSED        [ 63%]
+tests/unit/test_b0_runner.py::test_ifeval_case_and_title PASSED          [ 64%]
+tests/unit/test_b0_runner.py::test_ifeval_startend PASSED                [ 65%]
+tests/unit/test_b0_runner.py::test_ifeval_combination PASSED             [ 66%]
+tests/unit/test_b0_runner.py::test_ifeval_content PASSED                 [ 66%]
+tests/unit/test_b0_runner.py::test_ifeval_format PASSED                  [ 67%]
+tests/unit/test_b0_runner.py::test_ifeval_nth_paragraph_first_word PASSED [ 68%]
+tests/unit/test_b0_runner.py::test_ifeval_unimplemented_flagged_not_silent PASSED [ 69%]
+tests/unit/test_b0_runner.py::test_ifeval_prompt_level_all_constraints_must_pass PASSED [ 70%]
+tests/unit/test_b0_runner.py::test_score_humaneval_execution PASSED      [ 70%]
+tests/unit/test_b0_runner.py::test_extract_code_preserves_body_indentation PASSED [ 71%]
+tests/unit/test_b0_runner.py::test_mbpp_signature_from_reference_code PASSED [ 72%]
+tests/unit/test_b0_runner.py::test_score_mbpp_uses_reference_signature PASSED [ 73%]
+tests/unit/test_b0_runner.py::test_build_prompt_sets_add_generation_prompt PASSED [ 73%]
+tests/unit/test_b0_runner.py::test_build_prompt_mbpp_includes_reference_signature PASSED [ 74%]
+tests/unit/test_curriculum.py::test_curr_01_schedule_points PASSED       [ 75%]
+tests/unit/test_curriculum.py::test_curr_01_shapes PASSED                [ 76%]
+tests/unit/test_curriculum.py::test_curr_01_caps_and_errors PASSED       [ 76%]
+tests/unit/test_denoise_no_write.py::test_state_02_denoise_no_write PASSED [ 77%]
+tests/unit/test_denoise_no_write.py::test_state_02_no_write_during_rollout PASSED [ 78%]
+tests/unit/test_eval_harness.py::test_harness_covers_seven_benchmarks PASSED [ 79%]
+tests/unit/test_eval_harness.py::test_exact_match_fixtures PASSED        [ 80%]
+tests/unit/test_eval_harness.py::test_pass_at_k_fixtures PASSED          [ 80%]
+tests/unit/test_eval_harness.py::test_composite_frozen_weights_and_missing PASSED [ 81%]
+tests/unit/test_eval_harness.py::test_protocol_hash_stable PASSED        [ 82%]
+tests/unit/test_jai_load.py::test_load_01_conform PASSED                 [ 83%]
+tests/unit/test_jai_load.py::test_load_01_altered_rejected PASSED        [ 83%]
+tests/unit/test_jai_load.py::test_load_01_missing_rejected PASSED        [ 84%]
+tests/unit/test_jai_load.py::test_load_01_extra_rejected PASSED          [ 85%]
+tests/unit/test_jai_load.py::test_load_01_shape_rejected PASSED          [ 86%]
+tests/unit/test_jai_load.py::test_load_01_dtype_rejected PASSED          [ 86%]
+tests/unit/test_master.py::test_master_grads_finite_nonzero PASSED       [ 87%]
+tests/unit/test_master.py::test_master_effective_update_and_reproducible PASSED [ 88%]
+tests/unit/test_master.py::test_master_accumulates_when_bf16_rounds PASSED [ 89%]
+tests/unit/test_p1_legacy_refusal.py::test_forward_two_stream_refused_by_default PASSED [ 90%]
+tests/unit/test_p1_legacy_refusal.py::test_legacy_leaky_explicit_characterization PASSED [ 90%]
+tests/unit/test_p1_legacy_refusal.py::test_train_step_refuses_legacy_without_runner PASSED [ 91%]
+tests/unit/test_sampler.py::test_sampler_seeded_reproducible[cpu] PASSED [ 92%]
+tests/unit/test_sampler.py::test_sampler_seeded_reproducible[cuda] PASSED [ 93%]
+tests/unit/test_sampler.py::test_sampler_temp0_vs_temp_positive PASSED   [ 93%]
+tests/unit/test_sampler.py::test_sampler_wrong_device_generator_rejected PASSED [ 94%]
+tests/unit/test_state.py::test_state_01_snapshot_restore_bitexact PASSED [ 95%]
+tests/unit/test_state.py::test_state_03_batch_isolation PASSED           [ 96%]
+tests/unit/test_state.py::test_state_reset_rows_requires_jai_state PASSED [ 96%]
+tests/unit/test_tokenizer.py::test_tok_01_vocab_and_mask_id PASSED       [ 97%]
+tests/unit/test_tokenizer.py::test_tok_02_chat_template_stable PASSED    [ 98%]
+tests/unit/test_train_step.py::test_clip_triggers_and_scales PASSED      [ 99%]
+tests/unit/test_train_step.py::test_no_clip_below_threshold PASSED       [100%]
+
+================================== FAILURES ===================================
+______________________ test_gdn_03_oracle_kernel_parity _______________________
+
+>   ???
+
+/mnt/d/Intelligence_Artificielle/Projects/Jainius/tests/numerical/test_gdn_oracle.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+_artefacts\oracles\FLARE\torchtitan\__init__.py:10: in <module>
+    import torchtitan.components.quantization  # noqa: F401
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_artefacts\oracles\FLARE\torchtitan\components\quantization\__init__.py:20: in <module>
+    from torchtitan.config import JobConfig
+_artefacts\oracles\FLARE\torchtitan\config\__init__.py:36: in <module>
+    from .manager import ConfigManager
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    # Copyright (c) Meta Platforms, Inc. and affiliates.
+    # All rights reserved.
+    #
+    # This source code is licensed under the BSD-style license found in the
+    # LICENSE file in the root directory of this source tree.
+    
+    import importlib
+    import os
+    import sys
+    
+    from dataclasses import field, fields, is_dataclass, make_dataclass
+    from typing import Any, Type, get_args
+    
+>   import tyro
+E   ModuleNotFoundError: No module named 'tyro'
+
+_artefacts\oracles\FLARE\torchtitan\config\manager.py:14: ModuleNotFoundError
+=========================== short test summary info ===========================
+FAILED tests/numerical/test_gdn_oracle.py::test_gdn_03_oracle_kernel_parity
+======= 1 failed, 126 passed, 2 skipped, 1 xfailed in 258.38s (0:04:18) =======
+

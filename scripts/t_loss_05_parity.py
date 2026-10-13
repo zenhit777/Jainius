@@ -17,7 +17,8 @@ delta E0 (attendu ~9.5, mesuré avant à ~9.5).
 Critère strict auto-défini : |Δ| ≤ 1e-3 (rapporté, jamais modifié
 rétroactivement). Critère applicable (arbitrage E0-b ACCEPTÉ le
 2026-10-13, voir `docs/decisions/T-LOSS-05-E0-arbitration.md`) :
-|Δperte hybride (masque natif + teacher officiel)| ≤ 0.5, avec deltas
+|Δperte hybride (masque natif + teacher officiel)| ≤ 0.5 ; resserrement
+clôture A3 proposé à ≤ 0.1 (E0B_TOL, en attente d'arbitrage), avec deltas
 architecturaux documentés (x0 bloc-bidi vs causal : 12 cellules ;
 bruit FA inter-process 0.005–0.040).
 
@@ -42,6 +43,10 @@ sys.path.insert(0, str(OPDLM))
 
 _CRT = "T-LOSS-05"
 ABS_TOL = 1e-3
+# Resserrement clôture A3 (2026-10-13, en attente d'arbitrage utilisateur) :
+# E0-b proposé à 0.1 (≈1.3× le max observé 0.076, bruit officiel inclus).
+# L'arbitrage ACCEPTÉ reste 0.5 (docs/decisions/T-LOSS-05-E0-arbitration.md).
+E0B_TOL = 0.1
 
 
 def main() -> int:
@@ -523,14 +528,15 @@ def main() -> int:
     rep["student_per_pos"] = (l_ours[0] - l_off_full[0]).abs().max(-1).values.tolist()
     rep["d_student_logits_resp"] = d_stud
     ok_strict = (rep["d_loss_causal"] <= ABS_TOL and d_stud <= 1e-2)
-    ok_e0b = rep["d_loss_hybrid"] <= 0.5
+    ok_e0b = rep["d_loss_hybrid"] <= E0B_TOL
+    rep["e0b_tol"] = E0B_TOL
     rep["verdict_strict_1e-3"] = "PASS" if ok_strict else "FAIL"
     rep["verdict"] = "PASS (E0-b)" if ok_e0b else "FAIL"
     print(json.dumps(rep, indent=2))
     if args.out:
         Path(args.out).write_text(json.dumps(rep, indent=2))
     if not ok_e0b:
-        raise SystemExit(f"T-LOSS-05 : |Δhybride|={rep['d_loss_hybrid']:.3e} > 0.5 (E0-b)")
+        raise SystemExit(f"T-LOSS-05 : |Δhybride|={rep['d_loss_hybrid']:.3e} > {E0B_TOL} (E0-b)")
     return 0
 
 

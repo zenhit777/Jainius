@@ -21,7 +21,10 @@ Critère (arbitrage ACCEPTÉ le 2026-10-13, voir
 ≤ 5e-3 ET err absolue max ≤ 1e-3 (fp32 ; un écart de sémantique donne
 O(1)). Le seuil strict initial (1e-3/1e-3) a mesuré abs 1.33e-4 OK /
 rel 2.23e-3 KO ; le résidu est prouvé être du bruit interne du noyau
-Triton (référence fp64 identique), ~100× sous le bruit bf16 du modèle.
+Triton (référence fp64 identique, résidu strictement multiplicatif :
+relatif inchangé à amplitude ×8), du même ordre que la résolution
+relative de la chaîne (TF32 ≈ 0.39 % ; voir la décision d'arbitrage
+pour l'argumentaire corrigé A4).
 
 Constat documenté (2026-10-13, RTX 5090) : le helper d'inférence
 `fused_recurrent_block_causal_gated_delta_rule` en `causal_mode=0` NE

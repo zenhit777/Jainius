@@ -16,20 +16,40 @@
     une erreur d'implémentation déterministe) ;
   - il provient du TF32/fast-math du kernel Triton ;
   - le flag host (déterminisme) n'a aucun effet.
-- Le bruit numérique propre au modèle en bf16 est ≈ 0.25,
-  soit ~100× le résidu incriminé (2.23e-3).
+- Amplitude des sorties de référence (`refmax`, audit-20261014
+  `t_gdn_03_sens.log`) : ≈ 5.9e-2 en config nominale
+  (4.4e-2 à 9.7e-2 sur les 6 configs fp32). Le résidu absolu
+  1.33e-4 ne s'interprète que rapporté à cette échelle → 0.22 %.
+- Le résidu est strictement multiplicatif : à `vscale=4.0`
+  (amplitude ×8), l'écart absolu est ×8 (1.06e-3) mais l'écart
+  relatif est inchangé (2.231e-3) — c'est un bruit relatif de
+  la chaîne de calcul, et le relatif est la grandeur pertinente.
+- Ordres de grandeur des résolutions relatives : fp16 2^-10
+  ≈ 0.098 %, TF32 2^-8 ≈ 0.39 %, bf16 2^-7 ≈ 0.78 %. Le résidu
+  mesuré (0.12–0.22 % selon la config) est du même ordre que la
+  résolution de la chaîne (kernel Triton TF32/fast-math) : le
+  seuil relatif de 1e-3 (0.1 %) exigeait une exactitude au
+  niveau du quantum de représentation.
+- Correction clôture A4 (2026-10-13) : la comparaison « ~100×
+  inférieur au bruit bf16 » (0.25 absolu sur des activations vs
+  2.23e-3 relatif sur des sorties) mettait en regard deux
+  grandeurs inhomogènes ; elle était invalide et est retirée.
+  À titre homogène (relatif vs relatif) : le bruit relatif
+  propre mesuré en bf16 sur ce même test est 7.26e-3, soit ~3×
+  le résidu fp32 — informatif, non nécessaire à l'arbitrage.
 
 ## Analyse
 
 Le test compare une implémentation GDN à un oracle Triton. Le
-résidu (2.23e-3 relatif) est inférieur à la divergence entre
-les deux chemins de l'oracle lui-même (1.3e-4 est la
-concorde, mais l'échelle du bruit de kernel est du même ordre
-que le résidu) et ~100× inférieur au bruit bf16 intrinsèque du
-modèle. Autrement dit : le seuil relatif de 1e-3 est plus
-stricte que la précision effective de la chaîne de calcul
-(Triton TF32 + bf16) — il exige une exactitude que le
-matériel/le kernel ne garantit pas.
+résidu relatif (2.23e-3, soit 0.22 %) est du même ordre que la
+résolution relative de la chaîne de calcul (TF32 ≈ 0.39 %,
+voir Faits établis) et strictement multiplicatif (inchangé à
+amplitude ×8) : le seuil relatif de 1e-3 (0.1 %) exigeait une
+exactitude au niveau du quantum de représentation, que le
+matériel/le kernel ne garantit pas. (Correction A4 : l'ancien
+argument « ~100× sous le bruit bf16 » comparait un écart
+absolu à un écart relatif ; il est retiré et remplacé par
+l'argument de résolution ci-dessus.)
 
 Le critère absolu (1e-3) est lui respecté (1.33e-4, marge
 7.5×).

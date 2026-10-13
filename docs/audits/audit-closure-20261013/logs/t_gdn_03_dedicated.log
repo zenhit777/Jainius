@@ -1,0 +1,20 @@
+Skipping import of cpp extensions due to incompatible torch version. Please upgrade to torch >= 2.11.0 (found 2.10.0+cu128).
+torch 2.10.0+cu128 | triton 3.6.0 | fla 0.5.1 | cuda True NVIDIA GeForce RTX 5090
+============================= test session starts ==============================
+platform linux -- Python 3.13.16, pytest-9.1.1, pluggy-1.6.0 -- /home/sjteb/.venvs/flare-oracle/bin/python
+cachedir: .pytest_cache
+rootdir: /mnt/d/Intelligence_Artificielle/Projects/Jainius
+configfile: pyproject.toml
+plugins: typeguard-4.6.0
+collecting ... collected 1 item
+
+tests/numerical/test_gdn_oracle.py::test_gdn_03_oracle_kernel_parity PASSED [100%]
+
+=============================== warnings summary ===============================
+tests/numerical/test_gdn_oracle.py: 14 warnings
+  /home/sjteb/.venvs/flare-oracle/lib/python3.13/site-packages/torch/jit/_script.py:362: DeprecationWarning: `torch.jit.script_method` is deprecated. Please switch to `torch.compile` or `torch.export`.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 1 passed, 14 warnings in 6.23s ========================
+exit=0

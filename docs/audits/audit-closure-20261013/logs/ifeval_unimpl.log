@@ -1,0 +1,23 @@
+CMD: jainius-check python _artefacts/ifeval_unimpl.py
+SHA: 9ecab1a6743e40ba8d12a67a773edfd4a5c0e543
+{
+  "n_prompts": 541,
+  "constrained_response": {
+    "n": 10,
+    "frac": 0.018484288354898338
+  },
+  "response_language": {
+    "n": 31,
+    "frac": 0.05730129390018484
+  },
+  "union": {
+    "n": 41,
+    "frac": 0.07578558225508318
+  },
+  "both": {
+    "n": 0,
+    "idx": []
+  },
+  "note": "un prompt touch\u00e9 = \u00e9chec automatique (score_ifeval: NotImplementedError -> fail)"
+}
+EXIT=0

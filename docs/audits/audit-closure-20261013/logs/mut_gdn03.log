@@ -1,0 +1,29 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.16, pytest-9.1.1, pluggy-1.6.0 -- /home/sjteb/.venvs/flare-oracle/bin/python
+cachedir: .pytest_cache
+rootdir: /mnt/d/Intelligence_Artificielle/Projects/Jainius
+configfile: pyproject.toml
+plugins: typeguard-4.6.0
+collecting ... collected 3 items
+
+_artefacts/mutations/test_gdn_oracle_mut_token.py::test_gdn_03_oracle_kernel_parity FAILED [ 33%]
+_artefacts/mutations/test_gdn_oracle_mut_gneg.py::test_gdn_03_oracle_kernel_parity FAILED [ 66%]
+_artefacts/mutations/test_gdn_oracle_mut_nobeta.py::test_gdn_03_oracle_kernel_parity FAILED [100%]
+
+=================================== FAILURES ===================================
+E   AssertionError: T-GDN-03 : écart oracle (abs 5.98e-02, rel 9.73e-01)
+    assert (0.05975551903247833 <= 0.001)
+------------------------------ Captured log call -------------------------------
+WARNING  torchao:__init__.py:83 Skipping import of cpp extensions due to incompatible torch version. Please upgrade to torch >= 2.11.0 (found 2.10.0+cu128).
+/mnt/d/Intelligence_Artificielle/Projects/Jainius/_artefacts/mutations/test_gdn_oracle_mut_token.py:65: AssertionError: T-GDN-03 : écart oracle (abs 5.98e-02, rel 9.73e-01)
+E   AssertionError: T-GDN-03 : écart oracle (abs 1.43e+00, rel 9.77e-01)
+    assert (1.4274935722351074 <= 0.001)
+/mnt/d/Intelligence_Artificielle/Projects/Jainius/_artefacts/mutations/test_gdn_oracle_mut_gneg.py:69: AssertionError: T-GDN-03 : écart oracle (abs 1.43e+00, rel 9.77e-01)
+E   AssertionError: T-GDN-03 : écart oracle (abs 5.93e-02, rel 5.93e+10)
+    assert (0.05933573469519615 <= 0.001)
+/mnt/d/Intelligence_Artificielle/Projects/Jainius/_artefacts/mutations/test_gdn_oracle_mut_nobeta.py:70: AssertionError: T-GDN-03 : écart oracle (abs 5.93e-02, rel 5.93e+10)
+=========================== short test summary info ============================
+FAILED _artefacts/mutations/test_gdn_oracle_mut_token.py::test_gdn_03_oracle_kernel_parity
+FAILED _artefacts/mutations/test_gdn_oracle_mut_gneg.py::test_gdn_03_oracle_kernel_parity
+FAILED _artefacts/mutations/test_gdn_oracle_mut_nobeta.py::test_gdn_03_oracle_kernel_parity
+============================== 3 failed in 13.35s ==============================
