@@ -83,3 +83,35 @@ nvidia-smi --query-compute-apps=pid,used_memory --format=csv  # doit être vide
   Leurs mesures de performance (P3) sont à re-mesurer sur GPU vérifié vide
   avant toute comparaison. Les résultats de correction numérique sont
   insensibles à la contention GPU et restent valides.
+
+## 8. Jalon J1 — serving fork FLARE (terminé le 2026-10-14)
+
+Rapport : `docs/audits/audit-J1-20261015/REPORT.md` (+ `logs/` : check_env
+avant/après chaque série, journaux serveurs, JSON bruts).
+
+- Checkout oracle `_artefacts/oracles/FLARE` (commit `6ca547a`, lecture seule) :
+  le sous-arbre de serving est présent (`eval/sglang` 1604 fichiers Python,
+  `eval/configs/hybrid_diffusion_shift_b3_g1.yaml`, `eval/third_party/flashinfer`) ;
+  le lien de données de compilation FlashInfer (`.../flashinfer/data`) est absent
+  (matérialisé par `setup_eval_env.sh`). Constat : l'index git du checkout porte
+  des suppressions étagées (~3400 fichiers) alors que les fichiers de travail
+  existent — on n'y touche pas (D-04 : fork utilisé tel quel).
+- Images SGLang **amont** existantes (`dev-cu13`, `latest`) : PAS le fork.
+  Image dédiée en construction : `jainius-flare-serve:j1`
+  (`docker/Dockerfile.flare-serve`, base `nvidia/cuda:12.8.0-devel-ubuntu22.04`,
+  Python 3.10, torch 2.9.1 cu128, flashinfer 0.6.7.post3, sglang-kernel 0.4.1,
+  transformers 5.5.4 — versions épinglées de `setup_eval_env.sh`).
+- Point d'attention : support sm_120 (RTX 5090 Blackwell) par torch 2.9.1 cu128 /
+  sglang-kernel 0.4.1 à vérifier (torch 2.14.1+cu130 du venv `jainius-check`
+  voit déjà le GPU et CUDA=True). Erreurs exactes consignées dans
+  `docs/audits/audit-J1-20261015/REPORT.md`.
+- Checkpoints publiés (collection HF `yuchen-zhu-zyc/hybrid-diffusion`,
+  licence PolyForm Noncommercial 1.0.0 — usage privé D-01) :
+  `HybridDiffusion-2B` (~4,8 Go, retenu), `-4B`, `-9B`. Référence
+  autorégressive même taille : `Qwen/Qwen3.5-2B` (Apache 2.0, ~4,6 Go).
+- Résultat : image `jainius-flare-serve:j1` (32,8 Go, base CUDA 12.9 —
+  le sm_120 exige CUDA ≥ 12.9 côté FlashInfer JIT) ; serveur diffusion
+  (bloc 3 + graine, seuil 0,95) prêt en ~60 s ; 5/5 fonctionnel ;
+  C=1 : 66,7 tok/s diffusion vs 189,9 AR (0,35×, tpf ≈ 1,04 sur réponses
+  courtes — G5 ≥ 2× non atteint dans ce régime) ; 0,8B source chargé et
+  correct dans le fork. Conteneurs J1 supprimés, images amont intactes.

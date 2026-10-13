@@ -1,0 +1,11 @@
+jainius-flare-serve:j1 32.8GB
+nousresearch/hermes-agent:latest 4.5GB
+lmsysorg/sglang:latest 52.2GB
+lmsysorg/sglang:dev-cu13 47.4GB
+jgraph/drawio:latest 1.35GB
+alpine/curl:latest 20.8MB
+qdrant/qdrant:latest 270MB
+vllm/vllm-openai:latest 29.9GB
+mcp/obsidian:latest 215MB
+nvidia/cuda:12.6.0-base-ubuntu22.04 353MB
+zmlai/llmd:cuda 6.84GB

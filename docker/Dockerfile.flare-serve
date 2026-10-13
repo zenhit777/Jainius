@@ -1,0 +1,40 @@
+# Image dédiée au fork SGLang de FLARE (jalon J1) — usage privé.
+# Construite en suivant eval/scripts/setup_eval_env.sh du checkout FLARE
+# (commit 6ca547a). Le fork est utilisé TEL QUEL (D-04) : copié, jamais modifié.
+# Contexte de build : _artefacts/oracles/FLARE (ne contient que le sous-ensemble
+# de travail ; LICENSE et NOTICE sont préservés dans l'image, cf. D-01).
+# Modèle servi et cache HF montés à l'exécution (jamais copiés dans l'image).
+FROM nvidia/cuda:12.9.1-devel-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        python3.10 python3.10-venv python3.10-dev libnuma1 \
+        git curl ca-certificates ninja-build \
+    && rm -rf /var/lib/apt/lists/*
+
+# Gestionnaire uv (requis par setup_eval_env.sh)
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+
+# Fork FLARE tel quel (lecture seule à l'exécution)
+COPY eval /opt/flare/eval
+# Le checkout hôte porte des fins de ligne CRLF (disque Windows) : on les
+# normalise en LF dans la COPIE image uniquement (contenu identique par
+# ailleurs). Sans cela, `set -Eeuo pipefail` échoue sous bash (J1).
+RUN sed -i 's/\r$//' /opt/flare/eval/scripts/setup_eval_env.sh \
+    /opt/flare/eval/scripts/serve.sh /opt/flare/eval/scripts/evaluate.sh
+
+# Racines isolées (jamais le checkout, jamais le cache HF de l'hôte)
+ENV HYBRID_DIFFUSION_CACHE_ROOT=/opt/flare-cache \
+    EVAL_VENV=/opt/flare-venv
+
+RUN bash /opt/flare/eval/scripts/setup_eval_env.sh
+
+# Serveur lancé à l'exécution, ex. :
+#   docker run --gpus all --rm -p 31000:31000 \
+#     -v /home/sjteb/.cache/huggingface:/hf-cache:ro \
+#     -e HF_HOME=/opt/flare-cache/huggingface \
+#     jainius-flare-serve:j1 \
+#     bash /opt/flare/eval/scripts/serve.sh diffusion /hf-cache/<modele>
+CMD ["/opt/flare-venv/bin/python", "-c", "import torch; print(torch.__version__, torch.cuda.is_available())"]
