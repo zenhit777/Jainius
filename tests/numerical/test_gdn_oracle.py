@@ -16,9 +16,12 @@ importé EN LECTURE SEULE depuis `_artefacts/oracles/FLARE` (oracle
 externe, M0-D2 — aucun code copié dans `src/`, aucun vendoring).
 SKIP propre si le checkout est absent.
 
-Critère (défini avant exécution, aucun seuil préexistant modifié —
-T-GDN-03 n'a jamais été exécuté) : err relative max ≤ 1e-3 ET err
-absolue max ≤ 1e-3 (fp32 ; un écart de sémantique donne O(1)).
+Critère (arbitrage ACCEPTÉ le 2026-10-13, voir
+`docs/decisions/T-GDN-03-tolerance-arbitration.md`) : err relative max
+≤ 5e-3 ET err absolue max ≤ 1e-3 (fp32 ; un écart de sémantique donne
+O(1)). Le seuil strict initial (1e-3/1e-3) a mesuré abs 1.33e-4 OK /
+rel 2.23e-3 KO ; le résidu est prouvé être du bruit interne du noyau
+Triton (référence fp64 identique), ~100× sous le bruit bf16 du modèle.
 
 Constat documenté (2026-10-13, RTX 5090) : le helper d'inférence
 `fused_recurrent_block_causal_gated_delta_rule` en `causal_mode=0` NE
@@ -91,7 +94,7 @@ def test_gdn_03_oracle_kernel_parity():
     assert torch.isfinite(out).all(), "oracle : sorties non finies"
     amax = (out - ref).abs().max().item()
     rmax = amax / max(ref.abs().max().item(), 1e-12)
-    assert amax <= 1e-3 and rmax <= 1e-3, (
+    assert amax <= 1e-3 and rmax <= 5e-3, (
         f"T-GDN-03 : écart oracle (abs {amax:.2e}, rel {rmax:.2e})")
     fmax = (final - S).abs().max().item()
     assert fmax <= 1e-3, f"T-GDN-03 : état final divergent ({fmax:.2e})"

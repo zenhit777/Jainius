@@ -1,10 +1,7 @@
-# Décision proposée — T-GDN-03 : arbitrage de la tolérance relative
+# Décision — T-GDN-03 : arbitrage de la tolérance relative
 
-**Statut** : PROPOSÉE (arbitrage utilisateur requis — modifie un
-critère d'acceptation d'un test de parité numérique).
-**Date** : 2026-10-12. **Contexte** : audit
-`docs/audits/audit-8e4d9e3-20261013/REPORT.md`, test T-GDN-03
-(parité couche GDN vs oracle FLARE Triton), jalons M1/M2.
+**Statut** : **ACCEPTÉE** (option (a), arbitrage utilisateur du 2026-10-13).
+**Date** : 2026-10-12 (proposition). **Acceptation** : 2026-10-13.
 
 ## Faits établis (audit 8e4d9e3)
 
@@ -77,6 +74,10 @@ mesure B0.
 L'arbitrage d'un critère d'acceptation de test de parité est
 une décision de l'utilisateur (AGENTS.md §3 : l'agent ne
 modifie pas seul une convention expérimentale validée).
-À l'approbation, le test T-GDN-03 est mis à jour avec
+~~À l'approbation, le test T-GDN-03 est mis à jour avec
 tolérance rel=5e-3 (abs=1e-3), documentée dans le test et
-dans ce document (statut → ACCEPTÉE).
+dans ce document (statut → ACCEPTÉE).~~
+
+**Approuvé le 2026-10-13 : test mis à jour (rel=5e-3, abs=1e-3),
+re-exécuté PASS dans l'environnement dédié FLARE (voir audit
+de clôture). H-02 est clos sur cette base.**

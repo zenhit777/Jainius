@@ -157,16 +157,26 @@ class TwoStreamRunner:
         return allow
 
     def _doc_segments(self, doc):
-        """Listes (b, s, e) de runs contigus de même document."""
+        """Listes (b, s, e) de runs contigus de même document.
+
+        Étape D : frontières calculées en tenseurs (zéro `.item()` sur les
+        jetons) ; seuls les quelques indices de frontière repassent en
+        Python (nécessaires aux slices)."""
         B, L = doc.shape
+        if L == 0:
+            return []
+        chg = torch.zeros(B, L, dtype=torch.bool, device=doc.device)
+        chg[:, 0] = True
+        if L > 1:
+            chg[:, 1:] = doc[:, 1:] != doc[:, :-1]
         segs = []
+        end = torch.full((1,), L, dtype=torch.long, device=doc.device)
         for b in range(B):
-            d = doc[b].tolist()
-            s = 0
-            for e in range(1, L + 1):
-                if e == L or d[e] != d[s]:
+            # chg[b,0] est toujours vrai : premier départ = 0.
+            bounds = torch.cat([torch.where(chg[b])[0], end]).tolist()
+            for s, e in zip(bounds[:-1], bounds[1:]):
+                if e > s:
                     segs.append((b, s, e))
-                    s = e
         return segs
 
     def _clean_layers(self, h, pos, gstates, kvstates, doc, reset_rows):
@@ -280,30 +290,41 @@ class TwoStreamRunner:
     def _doc_positions(self, doc, past_doc=None):
         """Positions redémarrées à 0 à chaque document (FLARE `_doc_ids_to_
         positions`, spec §10.2). `doc` [B, L] (nouveaux tokens), `past_doc`
-        [B, P] ou None. Single-doc : identique à arange."""
+        [B, P] ou None. Single-doc : identique à arange.
+
+        Étape D : calcul 100 % tensoriel (zéro `.item()`, zéro
+        synchronisation) — `pos[t] = t - s(t)` où `s(t)` = dernier départ
+        de run (négatif si le run prolonge le passé : `s = -run0`)."""
         B, L = doc.shape
         dev = doc.device
-        pos = torch.zeros(B, L, dtype=torch.long, device=dev)
-        for b in range(B):
-            if past_doc is not None and past_doc.shape[1] > 0:
-                prev = past_doc[b, -1].item()
-                run = 0
-                for t in range(past_doc.shape[1] - 1, -1, -1):
-                    if past_doc[b, t].item() == doc[b, 0].item():
-                        run += 1
-                    else:
-                        break
-                cur = run
-            else:
-                prev, cur = None, 0
-            for t in range(L):
-                d = doc[b, t].item()
-                if prev is not None and d != prev:
-                    cur = 0
-                pos[b, t] = cur
-                cur += 1
-                prev = d
-        return pos
+        ar = torch.arange(L, device=dev).expand(B, L)
+        if past_doc is not None and past_doc.shape[1] > 0:
+            P = past_doc.shape[1]
+            cont = (doc[:, :1] == past_doc[:, -1:]).squeeze(1)
+            chg_p = torch.zeros(B, P, dtype=torch.bool, device=dev)
+            if P > 1:
+                chg_p[:, 1:] = past_doc[:, 1:] != past_doc[:, :-1]
+            has = chg_p.any(dim=1)
+            last = torch.where(
+                has, chg_p.long().cumsum(dim=1).argmax(dim=1),
+                torch.zeros(B, dtype=torch.long, device=dev))
+            tail_len = torch.where(has, P - last,
+                                   torch.full((B,), P, dtype=torch.long,
+                                              device=dev))
+            run0 = torch.where(cont, tail_len,
+                               torch.zeros(B, dtype=torch.long, device=dev))
+            chg0 = ~cont
+        else:
+            run0 = torch.zeros(B, dtype=torch.long, device=dev)
+            chg0 = torch.ones(B, dtype=torch.bool, device=dev)
+        shifted = torch.cat([doc[:, :1], doc[:, :-1]], dim=1)
+        chg = doc != shifted
+        chg[:, 0] = chg0
+        neg_inf = torch.full((), -(2 ** 60), dtype=torch.long, device=dev)
+        cands = torch.where(chg, ar, neg_inf)
+        cands = torch.maximum(cands, (-run0)[:, None])
+        s, _ = cands.cummax(dim=1)
+        return ar - s
 
     def prefill(self, ids, doc_ids=None):
         """Hidden BRUT (pré-norme) + état propre après le préfixe causal."""
@@ -456,9 +477,11 @@ class TwoStreamRunner:
             assert bool(((doc[:, s:e] == doc[:, s:s + 1]).all())), (
                 "bloc à cheval sur deux documents (hors contrat M1)")
             # Snapshot = états après le préfixe propre [0, s) (déjà calculés).
-            snap_g = [type(st)(S=st.S.clone(), conv=st.conv.clone())
-                      for st in g_cur]
-            snap_kv = [(k.clone(), v.clone(), d.clone()) for k, v, d in kv_cur]
+            # Étape D : pas de `clone()` ici — `_noisy_block_layers` et
+            # `_clean_layers` clonent leurs entrées (vérifié : aucun
+            # écrasement in-place des états d'entrée) ; `g_cur`/`kv_cur`
+            # ne sont que réassignés, jamais mutés.
+            snap_g, snap_kv = g_cur, kv_cur
             posb = self._doc_positions(doc[:, s:e], past_doc=doc[:, :s])
             zero_init = ((doc[:, s] != doc[:, s - 1]) if s > 0
                          else torch.zeros(B, dtype=torch.bool, device=dev))

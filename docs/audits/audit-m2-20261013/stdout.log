@@ -1,0 +1,9 @@
+[gsm8k] mean=0.5219 std=1.29e-03 (557s)
+[math500] mean=0.3313 std=5.73e-03 (554s)
+[mmlu] mean=0.4476 std=4.54e-04 (680s)
+[mmlu_pro] mean=0.1882 std=4.77e-04 (792s)
+[ifeval] mean=0.2181 std=1.51e-03 (219s)
+[humaneval] mean=0.2825 std=2.87e-03 (111s)
+[mbpp] mean=0.2540 std=0.00e+00 (179s)
+écrit : _artefacts/b0/b0-results.json
+composite B0 = 0.3205

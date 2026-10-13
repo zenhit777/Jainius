@@ -55,21 +55,52 @@ def measure_one(runner, L, variant, warmup=1, reps=2):
         loss.backward()
         runner.model.zero_grad()
     times, peaks = [], []
+    fwd_times, bwd_times = [], []
     for _ in range(reps):
         torch.cuda.synchronize()
         torch.cuda.reset_peak_memory_stats("cuda")
         t0 = time.perf_counter()
         h0, h1 = fn(x0, xt, unit_block=4, resp_start=0)
+        torch.cuda.synchronize()
+        t1 = time.perf_counter()
         loss = h1.square().mean()
         loss.backward()
+        torch.cuda.synchronize()
+        t2 = time.perf_counter()
+        peak = torch.cuda.max_memory_allocated("cuda") / (1024 ** 3)
+        times.append(t2 - t0)
+        fwd_times.append(t1 - t0)
+        bwd_times.append(t2 - t1)
+        peaks.append(peak)
+        runner.model.zero_grad()
+    return {"times": times, "peaks_gb": peaks,
+            "fwd_times": fwd_times, "bwd_times": bwd_times,
+            "loss": float(loss.detach().item())}
+
+
+def measure_train_step(student, teacher, optim, L, warmup=1, reps=2):
+    """Coût complet d'un train step réel (runner + teacher + KL + optim)."""
+    from types import SimpleNamespace
+    from jainius.train.loop import train_step
+    torch.manual_seed(0)
+    pids = list(range(100, 116))
+    traj = SimpleNamespace(x0=[100 + (j % 900) for j in range(L - len(pids))])
+    for _ in range(warmup):
+        train_step(student, teacher, optim, [pids], [traj],
+                   runner=student.runner)
+    times, peaks = [], []
+    for _ in range(reps):
+        torch.cuda.synchronize()
+        torch.cuda.reset_peak_memory_stats("cuda")
+        t0 = time.perf_counter()
+        loss = train_step(student, teacher, optim, [pids], [traj],
+                          runner=student.runner)
         torch.cuda.synchronize()
         t1 = time.perf_counter()
         peak = torch.cuda.max_memory_allocated("cuda") / (1024 ** 3)
         times.append(t1 - t0)
         peaks.append(peak)
-        runner.model.zero_grad()
-    return {"times": times, "peaks_gb": peaks,
-            "loss": float(loss.detach().item())}
+    return {"times": times, "peaks_gb": peaks, "loss": loss}
 
 
 def main():
@@ -81,6 +112,8 @@ def main():
                     default=["optimized", "quadratic"])
     ap.add_argument("--reps", type=int, default=2)
     ap.add_argument("--warmup", type=int, default=1)
+    ap.add_argument("--train-step", action="store_true",
+                    help="mesure aussi un train_step réel (runner+teacher+KL)")
     args = ap.parse_args()
     from jainius.model.twostream import TwoStreamRunner
     model = AutoModelForCausalLM.from_pretrained(
@@ -103,6 +136,30 @@ def main():
                 print(f"{key}: times={r['times']} peaks={r['peaks_gb']}",
                       flush=True)
             except Exception as e:  # OOM / timeout -> preuve brute
+                out["results"][key] = {"status": "FAIL",
+                                       "error": f"{type(e).__name__}: {e}"}
+                print(f"{key}: FAIL {e}", flush=True)
+            with open(args.out, "w", encoding="utf-8") as f:
+                json.dump(out, f, indent=2)
+    if args.train_step:
+        import copy
+        from jainius.distill.teacher import Teacher
+        from jainius.model.arch import DiffusionSpec, JainiusModel
+        # Enseignant = instance séparée (Teacher gèle ses paramètres ;
+        # partager l'objet modèle gèlerait aussi l'étudiant).
+        teacher = Teacher(copy.deepcopy(model).eval())
+        student = JainiusModel(model, DiffusionSpec())
+        student.runner = runner
+        optim = torch.optim.AdamW(model.parameters(), lr=1e-5)
+        for L in args.lengths:
+            key = f"L{L}/train_step"
+            try:
+                r = measure_train_step(student, teacher, optim, L,
+                                       warmup=args.warmup, reps=args.reps)
+                out["results"][key] = {"status": "OK", **r}
+                print(f"{key}: times={r['times']} peaks={r['peaks_gb']}",
+                      flush=True)
+            except Exception as e:
                 out["results"][key] = {"status": "FAIL",
                                        "error": f"{type(e).__name__}: {e}"}
                 print(f"{key}: FAIL {e}", flush=True)

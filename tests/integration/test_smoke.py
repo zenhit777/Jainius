@@ -91,6 +91,10 @@ def test_smoke_resume(smoke_rep):
     )
     trajs = rep["trajectories"][1]
     pids_list = [t.prompt_ids for t in trajs]
+    # Reprise réaliste : même voie runner que run_smoke (P1 — le chemin
+    # legacy est refusé par défaut).
+    from jainius.model.twostream import TwoStreamRunner
+    student.runner = TwoStreamRunner(student.model)
     train_step(student, teacher, optim, pids_list, trajs)
     assert param_fingerprint(student.model) == rep["params_fp"][2], (
         "reprise + 1 pas ≠ trajectoire de référence"

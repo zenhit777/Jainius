@@ -33,11 +33,20 @@ def gdn_step(S: torch.Tensor, q: torch.Tensor, k: torch.Tensor,
     P1/P2 : opérations PyTorch différentiables uniquement — `torch.exp`
     et indexation native. Aucun `float()`, `math.exp` ou extraction
     scalaire Python sur le chemin du gradient (le graphe autograd vers
-    `A_log`, `dt_bias`, `in_proj_a/b`, q/k/v doit rester intact)."""
+    `A_log`, `dt_bias`, `in_proj_a/b`, q/k/v doit rester intact).
+
+    Étape D : `g`/`beta` acceptent aussi la forme batchée [N] (une valeur
+    par séquence×tête) — l'extension de dimensions préserve exactement
+    l'ordre des opérations élément par élément."""
     decay = torch.exp(g)
+    while decay.dim() < S.dim():
+        decay = decay.unsqueeze(-1)
     S = S * decay
     kv = (S * k.unsqueeze(-1)).sum(dim=-2)
-    delta = (v - kv) * beta
+    beta_b = beta
+    while beta_b.dim() < (v - kv).dim():
+        beta_b = beta_b.unsqueeze(-1)
+    delta = (v - kv) * beta_b
     S = S + k.unsqueeze(-1) * delta.unsqueeze(-2)
     o = (S * q.unsqueeze(-1)).sum(dim=-2)
     return o, S
@@ -57,6 +66,29 @@ def gdn_run(q, k, v, g, beta, S0=None):
         o, S = gdn_step(S, q[t], k[t], v[t], g[t], beta[t])
         outs.append(o)
     return torch.stack(outs), S
+
+
+def gdn_run_batched(q, k, v, g, beta, S0=None):
+    """Déroulé causal vectorisé sur N séquences×têtes indépendantes.
+
+    q/k [N, T, K], v [N, T, V], g/beta [N, T] (scalaires par tête),
+    S0 [N, K, V] ou None. -> (outs [N, T, V], S_end [N, K, V]).
+
+    Étape D (vectorisation logicielle) : même ordre mathématique que
+    `gdn_run` élément par élément (la boucle sur les jetons porte une
+    dépendance séquentielle réelle S_t(S_{t-1}) et est conservée) ;
+    seules les dimensions indépendantes (batch, têtes) sont fusionnées.
+    Autograd préservé (aucune extraction scalaire).
+    """
+    N, T, K = q.shape
+    V = v.shape[-1]
+    S = (torch.zeros(N, K, V, dtype=q.dtype, device=q.device)
+         if S0 is None else S0.clone())
+    outs = []
+    for t in range(T):
+        o, S = gdn_step(S, q[:, t], k[:, t], v[:, t], g[:, t], beta[:, t])
+        outs.append(o)
+    return torch.stack(outs, dim=1), S
 
 
 def gdn_block_end_read(q, k, v, g, beta, S_init):
@@ -156,7 +188,35 @@ class GDNRefLayer:
         return mixed, z, b, g
 
     def _core(self, q, k, v, g, beta, S0=None):
-        """q/k [B, T, H, K], v [B, T, H, V] -> (outs [B, T, H, V], S_end)."""
+        """q/k [B, T, H, K], v [B, T, H, V] -> (outs [B, T, H, V], S_end).
+
+        Étape D : boucle unique sur les jetons, dimensions batch×têtes
+        fusionnées ([B*H, T, ...]) via `gdn_run_batched`. Même ordre
+        mathématique que `_core_legacy` (référence conservée ci-dessous,
+        vérifiée par `test_gdn_vectorized_parity`)."""
+        B, T, H, K = q.shape
+        Vd = v.shape[-1]
+        if g.shape[-1] != H or beta.shape[-1] != H:
+            raise ValueError(
+                f"_core : têtes g/beta {g.shape[-1]}/{beta.shape[-1]} ≠ "
+                f"têtes q/k/v {H} (répétition GQA non supportée, comme le "
+                f"chemin historique).")
+        scale = math.sqrt(K)
+        qn = l2norm(q) / scale
+        kn = l2norm(k)
+        qf = qn.permute(0, 2, 1, 3).reshape(B * H, T, K)
+        kf = kn.permute(0, 2, 1, 3).reshape(B * H, T, K)
+        vf = v.permute(0, 2, 1, 3).reshape(B * H, T, Vd)
+        gf = g.reshape(B, T, H).permute(0, 2, 1).reshape(B * H, T)
+        bf = beta.reshape(B, T, H).permute(0, 2, 1).reshape(B * H, T)
+        s0 = None if S0 is None else S0.reshape(B * H, K, Vd)
+        outs, send = gdn_run_batched(qf, kf, vf, gf, bf, S0=s0)
+        return (outs.reshape(B, H, T, Vd).permute(0, 2, 1, 3),
+                send.reshape(B, H, K, Vd))
+
+    def _core_legacy(self, q, k, v, g, beta, S0=None):
+        """Référence historique (boucles Python B×H) — conservée pour les
+        tests de parité de la vectorisation. Ne pas utiliser en entraînement."""
         B, T, H, _ = q.shape
         outs, sends = [], []
         for b in range(B):
@@ -239,7 +299,41 @@ class GDNRefLayer:
     def forward_noisy_block(self, h_block, S_init, conv_init):
         """Sémantique planifiée B0 : récurrence depuis S_init (copie, pas
         d'écriture du propre), lecture de TOUS les jetons depuis S_end.
-        -> (out [B, L, Vdim], S_end)."""
+        -> (out [B, L, Vdim], S_end).
+
+        Étape D : batch×têtes fusionnées + lecture S̃_end en un einsum
+        (référence historique conservée : `_forward_noisy_block_legacy`)."""
+        B, L, _ = h_block.shape
+        q, k, v, z, g, beta = self._block_qkvz(h_block, conv_init)
+        H, K = q.shape[2], self.d_k
+        Vd = v.shape[-1]
+        if g.shape[-1] != H or beta.shape[-1] != H:
+            raise ValueError(
+                f"noisy_block : têtes g/beta {g.shape[-1]}/{beta.shape[-1]} "
+                f"≠ têtes q/k/v {H} (comme le chemin historique).")
+        qn = l2norm(q) / math.sqrt(self.d_k)
+        kn = l2norm(k)
+        N = B * H
+        qf = qn.permute(0, 2, 1, 3).reshape(N, L, K)
+        kf = kn.permute(0, 2, 1, 3).reshape(N, L, K)
+        vf = v.permute(0, 2, 1, 3).reshape(N, L, Vd)
+        gf = g.reshape(B, L, H).permute(0, 2, 1).reshape(N, L)
+        bf = beta.reshape(B, L, H).permute(0, 2, 1).reshape(N, L)
+        s0 = S_init.reshape(N, K, Vd)
+        _, send = gdn_run_batched(qf, kf, vf, gf, bf, S0=s0)
+        # Lecture S̃_end pour tous les jetons en une opération :
+        # o[b,t,h,v] = Σ_k S_end[b,h,k,v] · q[b,t,h,k].
+        core = torch.einsum("nhkv,nhtk->nhtv",
+                            send.reshape(B, H, K, Vd),
+                            qn.permute(0, 2, 1, 3)).permute(0, 2, 1, 3)
+        hf = self._hf
+        W_out = self._live(hf.out_proj.weight, core.dtype)
+        out = self._finish(core, z).reshape(B, L, -1) @ W_out.T
+        return out, send.reshape(B, H, K, Vd)
+
+    def _forward_noisy_block_legacy(self, h_block, S_init, conv_init):
+        """Référence historique (boucles Python B×H×T) — conservée pour
+        les tests de parité de la vectorisation."""
         B, L, _ = h_block.shape
         q, k, v, z, g, beta = self._block_qkvz(h_block, conv_init)
         H = q.shape[2]

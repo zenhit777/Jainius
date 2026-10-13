@@ -1,0 +1,62 @@
+{
+  "env": {
+    "python": "3.13.15",
+    "torch": "2.11.0+cu128",
+    "transformers": "5.17.0",
+    "cuda_available": true,
+    "device": "NVIDIA GeForce RTX 5090",
+    "dtype": "bfloat16",
+    "batch": 1,
+    "unit_block": 4,
+    "resp_start": 0,
+    "seed": 0
+  },
+  "n_trainable_params": 752393024,
+  "n_layers": 24,
+  "results": {
+    "L128/optimized": {
+      "status": "OK",
+      "times": [
+        10.4297482999973,
+        10.339761200011708
+      ],
+      "peaks_gb": [
+        9.36613130569458,
+        9.36613130569458
+      ],
+      "fwd_times": [
+        3.9990300000063144,
+        3.866797399998177
+      ],
+      "bwd_times": [
+        6.4307182999909855,
+        6.472963800013531
+      ],
+      "loss": 0.205078125
+    },
+    "L128/quadratic": {
+      "status": "OK",
+      "times": [
+        59.53448070000741,
+        61.454638299997896
+      ],
+      "peaks_gb": [
+        55.56162166595459,
+        55.556097984313965
+      ],
+      "fwd_times": [
+        21.71064030000707,
+        21.47088700000313
+      ],
+      "bwd_times": [
+        37.823840400000336,
+        39.983751299994765
+      ],
+      "loss": 0.205078125
+    },
+    "L128/train_step": {
+      "status": "FAIL",
+      "error": "NameError: name 'i' is not defined"
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "env": {
+    "python": "3.13.15",
+    "torch": "2.11.0+cu128",
+    "transformers": "5.17.0",
+    "cuda_available": true,
+    "device": "NVIDIA GeForce RTX 5090",
+    "dtype": "bfloat16",
+    "batch": 1,
+    "unit_block": 4,
+    "resp_start": 0,
+    "seed": 0
+  },
+  "n_trainable_params": 752393024,
+  "n_layers": 24,
+  "results": {
+    "L512/optimized": {
+      "status": "OK",
+      "times": [
+        65.9230530000059,
+        74.32217719999608
+      ],
+      "peaks_gb": [
+        34.11503839492798,
+        34.1260552406311
+      ],
+      "fwd_times": [
+        18.645250500005204,
+        18.737648899987107
+      ],
+      "bwd_times": [
+        47.27780250000069,
+        55.58452830000897
+      ],
+      "loss": 0.208984375
+    },
+    "L512/train_step": {
+      "status": "FAIL",
+      "error": "RuntimeError: element 0 of tensors does not require grad and does not have a grad_fn"
+    }
+  }
+}

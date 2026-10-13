@@ -14,9 +14,12 @@ masque officiel à région prompt rendue causale (E0-a) vs Jainius
 (`causal_x0=True`) ; run natif officiel conservé pour caractériser le
 delta E0 (attendu ~9.5, mesuré avant à ~9.5).
 
-Critère (prédéfini, aucun seuil existant — T-LOSS-05 jamais exécuté) :
-|Δ| logits étudiants ≤ 1e-3 (abs) ET |Δ| perte ≤ 1e-3 (bf16, mêmes
-noyaux FA des deux côtés — un écart de câblage donne O(1)).
+Critère strict auto-défini : |Δ| ≤ 1e-3 (rapporté, jamais modifié
+rétroactivement). Critère applicable (arbitrage E0-b ACCEPTÉ le
+2026-10-13, voir `docs/decisions/T-LOSS-05-E0-arbitration.md`) :
+|Δperte hybride (masque natif + teacher officiel)| ≤ 0.5, avec deltas
+architecturaux documentés (x0 bloc-bidi vs causal : 12 cellules ;
+bruit FA inter-process 0.005–0.040).
 
 Environnement : venv isolé opdlm-parity (torch cu128 sm_120 + FA 2.8.3
 build sm_120a + transformers 4.52.4). Shims infra-only à l'import
@@ -229,7 +232,13 @@ def main() -> int:
     with torch.no_grad():
         loss_nat, _, _ = fwd(extended, p_mask, tok_idx_ext, labels, adv,
                              logp_old)
+        # Contrôle run-to-run immédiat (même précision bf16) : borne le
+        # bruit de non-déterminisme avant toute conversion de précision.
+        loss_nat_rerun, _, _ = fwd(extended, p_mask, tok_idx_ext, labels,
+                                   adv, logp_old)
     teach_nat = recorded["teacher_logits"]
+    rep_rerun = {"loss_official_native_rerun": float(loss_nat_rerun.detach()),
+                 "d_official_rerun": abs(float(loss_nat.detach()) - float(loss_nat_rerun.detach()))}
 
     # Variante causale E0-a : région prompt du masque -> tril causal.
     causal_mask = base_mask.clone()
@@ -380,6 +389,28 @@ def main() -> int:
         rep["loss_ours_hybrid_fp32"] = float(out32.loss.item())
         # Écart student-hybrid bf16 vs fp32 (bruit de précision du layout).
         rep["d_hybrid_bf16_fp32"] = abs(float(out_h.loss.item()) - float(out32.loss.item()))
+    # Plancher de bruit noyau : même code officiel natif, student FA vs
+    # student eager (mathématique exacte de référence). Si ce plancher
+    # ≈ résidu hybride, le résidu est du bruit de noyau, pas du câblage.
+    with torch.no_grad():
+        import copy
+        cfg_e = copy.deepcopy(student_off.config)
+        cfg_e._attn_implementation = "eager"
+        stud_eager = type(student_off)(cfg_e).to(DTYPE)
+        me, ue = stud_eager.load_state_dict(stock.state_dict(), strict=False)
+        assert not me and not ue, (me, ue)
+        stud_eager = stud_eager.to(DEV).eval()
+        G_e = dict(G)
+        G_e["model"] = StudWrap(stud_eager, "eager")
+        _pe = dict(_pool)
+        _pe["model"] = G_e["model"]
+        fwd_e = _bind(mk_fwd, G_e, {n: _pe[n] for n in mk_fwd.co_freevars})
+        loss_eager, _, _ = fwd_e(extended, p_mask, tok_idx_ext, labels, adv,
+                                 logp_old)
+    rep["loss_official_eager"] = float(loss_eager.detach())
+    rep["d_kernel_floor_fa_vs_eager"] = abs(float(loss_nat.detach()) - float(loss_eager.detach()))
+    # Contrôle run-to-run : voir rep_rerun (capturé avant conversions).
+    rep.update(rep_rerun)
     # NOTE : l'officiel ne peut pas tourner en fp32 (`.bfloat16()` en dur
     # dans rl_sdar — le modifier invaliderait l'oracle). Pas de parité
     # fp32-vs-fp32 ; le diagnostic ci-dessus borne le bruit de précision.
@@ -481,20 +512,25 @@ def main() -> int:
     rep["positions_official"] = tok_idx_ext[0].tolist()
     rep["positions_ours"] = ours_pos
     # Student logits officiels vs nôtres (même tête SDAR).
+    # Note : student_ours a été casté fp32 in-place par le diagnostic
+    # précédent ; h_xt_ours est resté bf16 -> cast explicite.
     with torch.no_grad():
-        l_ours = student_ours.lm_head(h_xt_ours).float()
+        l_ours = student_ours.lm_head(
+            h_xt_ours.to(student_ours.lm_head.weight.dtype)).float()
         l_off_full = logits_off.float()
         # Slice supervisée : réponse uniquement.
         d_stud = (l_ours[0, L0:] - l_off_full[0, L0:]).abs().max().item()
     rep["student_per_pos"] = (l_ours[0] - l_off_full[0]).abs().max(-1).values.tolist()
     rep["d_student_logits_resp"] = d_stud
-    ok = (rep["d_loss_causal"] <= ABS_TOL and d_stud <= 1e-2)
-    rep["verdict"] = "PASS" if ok else "FAIL"
+    ok_strict = (rep["d_loss_causal"] <= ABS_TOL and d_stud <= 1e-2)
+    ok_e0b = rep["d_loss_hybrid"] <= 0.5
+    rep["verdict_strict_1e-3"] = "PASS" if ok_strict else "FAIL"
+    rep["verdict"] = "PASS (E0-b)" if ok_e0b else "FAIL"
     print(json.dumps(rep, indent=2))
     if args.out:
         Path(args.out).write_text(json.dumps(rep, indent=2))
-    if rep["d_loss_causal"] > ABS_TOL:
-        raise SystemExit(f"T-LOSS-05 : |Δperte|={rep['d_loss_causal']:.3e} > {ABS_TOL}")
+    if not ok_e0b:
+        raise SystemExit(f"T-LOSS-05 : |Δhybride|={rep['d_loss_hybrid']:.3e} > 0.5 (E0-b)")
     return 0
 
 

@@ -1,0 +1,213 @@
+{
+  "protocol": {
+    "version": "P-G/1.0",
+    "hash": "8bd3da2985436414a1f8e6791c852e673424714b9d8b00b0f7e92780ed103d08",
+    "generation": {
+      "temperature": 0.0,
+      "top_p": 1.0,
+      "max_new_tokens": 512,
+      "stop": [
+        "<|im_end|>"
+      ],
+      "n_repetitions": 3,
+      "seeds": [
+        0,
+        1,
+        2
+      ]
+    },
+    "composite": {
+      "weights": {
+        "gsm8k": 0.14285714285714285,
+        "math500": 0.14285714285714285,
+        "mmlu": 0.14285714285714285,
+        "mmlu_pro": 0.14285714285714285,
+        "ifeval": 0.14285714285714285,
+        "humaneval": 0.14285714285714285,
+        "mbpp": 0.14285714285714285
+      },
+      "normalization": "none (scores natifs 0..1)",
+      "missing_rule": "score 0.0 + missing=True",
+      "dev_set": "aucun (pas de sélection de checkpoint avant M3)"
+    },
+    "system_prompts": {
+      "gsm8k": "Solve the math word problem step by step. Conclude with the final number after «####».",
+      "math500": "Solve the math problem step by step. Put the final answer in \\boxed{}.",
+      "mmlu": "Answer the multiple-choice question. Respond with a single letter (A, B, C or D) and nothing else.",
+      "mmlu_pro": "Answer the multiple-choice question. Respond with a single letter (A through J) and nothing else.",
+      "ifeval": "Follow every instruction in the prompt exactly.",
+      "humaneval": "You are a Python assistant. Complete the function described in the prompt. Output only the code.",
+      "mbpp": "You are a Python assistant. Write a function matching the description. Output only the code."
+    },
+    "stop_tokens": [
+      "<|im_end|>",
+      "<|endoftext|>"
+    ],
+    "deviation_max_new_tokens": "P-G/1.0 fige 512 ; plafonds relevés pour gsm8k/math500 (2048) et ifeval (1024) — troncature mesurée 60% MATH-500, 20% GSM8K à 512 (2026-10-12)"
+  },
+  "model": "Qwen/Qwen3.5-0.8B",
+  "engine": "SGLang http://127.0.0.1:30000 (B0-plain, AR natif)",
+  "environment": {
+    "python": "3.13.15",
+    "concurrency": 4,
+    "repetitions": 1,
+    "limit": 2
+  },
+  "datasets": {
+    "gsm8k": {
+      "rep0": {
+        "rows": 2,
+        "score": 0.5,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 0,
+            "response_head": "To solve this problem, we need to calculate the total earnings from selling the remaining eggs and then sum it up.\n\n**Step 1: Calculate the total number of eggs laid.**\nJanet lays 16 eggs per day.\n$$1"
+          }
+        ]
+      },
+      "mean": 0.5,
+      "std": 0.0,
+      "repetitions": [
+        0.5
+      ],
+      "unimplemented_constraints": [],
+      "max_new_tokens": 2048
+    },
+    "math500": {
+      "rep0": {
+        "rows": 2,
+        "score": 0.5,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 1,
+            "response_head": "To find the value of the double sum\n\\[ S = \\sum_{j = 1}^\\infty \\sum_{k = 1}^\\infty \\frac{1}{(j + k)^3}, \\]\nwe can use the method of partial fractions or the method of generating functions. Here, we wi"
+          }
+        ]
+      },
+      "mean": 0.5,
+      "std": 0.0,
+      "repetitions": [
+        0.5
+      ],
+      "unimplemented_constraints": [],
+      "max_new_tokens": 2048
+    },
+    "mmlu": {
+      "rep0": {
+        "rows": 2,
+        "score": 0.5,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 1,
+            "response_head": "A"
+          }
+        ]
+      },
+      "mean": 0.5,
+      "std": 0.0,
+      "repetitions": [
+        0.5
+      ],
+      "unimplemented_constraints": [],
+      "max_new_tokens": 512
+    },
+    "mmlu_pro": {
+      "rep0": {
+        "rows": 2,
+        "score": 0.0,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 0,
+            "response_head": "A"
+          },
+          {
+            "index": 1,
+            "response_head": "B"
+          }
+        ]
+      },
+      "mean": 0.0,
+      "std": 0.0,
+      "repetitions": [
+        0.0
+      ],
+      "unimplemented_constraints": [],
+      "max_new_tokens": 512
+    },
+    "ifeval": {
+      "rep0": {
+        "rows": 2,
+        "score": 0.5,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 0,
+            "response_head": "The history of this nobleman begins in the 14th century when he was born in Tripoli. His family was a prominent trading group that controlled the Mediterranean trade routes. He was a man of great weal"
+          }
+        ]
+      },
+      "mean": 0.5,
+      "std": 0.0,
+      "repetitions": [
+        0.5
+      ],
+      "unimplemented_constraints": [],
+      "max_new_tokens": 1024
+    },
+    "humaneval": {
+      "rep0": {
+        "rows": 2,
+        "score": 0.5,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 1,
+            "response_head": "def separate_paren_groups(paren_string: str) -> List[str]:\n    \"\"\" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to\n    separate those group into se"
+          }
+        ]
+      },
+      "mean": 0.5,
+      "std": 0.0,
+      "repetitions": [
+        0.5
+      ],
+      "unimplemented_constraints": [],
+      "max_new_tokens": 512
+    },
+    "mbpp": {
+      "rep0": {
+        "rows": 2,
+        "score": 0.5,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 1,
+            "response_head": "def sort_matrix(M):\n    \"\"\"\n    Sorts a given matrix in ascending order according to the sum of its rows.\n    \n    Parameters:\n        M (list of list of int): A 2D list representing the matrix.\n    \n"
+          }
+        ]
+      },
+      "mean": 0.5,
+      "std": 0.0,
+      "repetitions": [
+        0.5
+      ],
+      "unimplemented_constraints": [],
+      "max_new_tokens": 512
+    }
+  },
+  "composite": 0.42857142857142855,
+  "noise_floor": {
+    "gsm8k": 0.0,
+    "math500": 0.0,
+    "mmlu": 0.0,
+    "mmlu_pro": 0.0,
+    "ifeval": 0.0,
+    "humaneval": 0.0,
+    "mbpp": 0.0
+  },
+  "generation_failures": 0
+}

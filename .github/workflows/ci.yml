@@ -32,7 +32,7 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install transformers safetensors pytest pyyaml
+          pip install transformers safetensors pytest pyyaml requests datasets
           pip install -e .
       - name: Unit + toy numerical tests (no GPU, no weights)
         run: |
@@ -43,11 +43,13 @@ jobs:
                            tests/unit/test_p1_legacy_refusal.py \
                            tests/unit/test_jai_load.py \
                            tests/unit/test_eval_harness.py \
+                           tests/unit/test_b0_runner.py \
                            tests/integration/test_checkpoint.py \
                            tests/numerical/test_masks.py \
                            tests/numerical/test_loss.py \
                            tests/numerical/test_p2_gdn_grad.py \
                            tests/numerical/test_p4_strict.py \
+                           tests/numerical/test_gdn_vectorized.py \
                            --tb=short -v
       - name: Excluded tests (explicit, with reasons)
         run: |
@@ -64,7 +66,7 @@ jobs:
     steps:
       - name: Blocked oracles (informational, never green-washed)
         run: |
-          echo "T-GDN-03 (oracle FLARE) : BLOCKED — requiert torch 2.10.0 + fla 0.5.1 (réf : torch 2.11.0+cu128, fla absent)."
-          echo "T-LOSS-05 (parité OPDLM) : BLOCKED — requiert l'environnement OPDLM officiel (torch 2.6 + rl_sdar + GPU)."
-          echo "B0 (benchmarks qualité) : NOT RUN — aucun pilote (règle absolue n°1)."
+          echo "T-GDN-03 : PASS sous arbitrage accepté (rel 5e-3) en environnement FLARE dédié local (torch 2.10.0 + fla 0.5.1 + GPU) — non exécutable sur runners CPU, voir docs/audits/."
+          echo "T-LOSS-05 : PASS sous arbitrage E0-b accepté en environnement OPDLM dédié local — non exécutable sur runners CPU, voir docs/audits/."
+          echo "B0 : MESURÉ le 2026-10-13 (composite 0.3205, 7 benchmarks x 3 répétitions, SGLang B0-plain) — mesure locale GPU, voir docs/audits/audit-m2-20261013/."
           echo "Ce job est INFORMATIF : il ne valide aucun oracle."

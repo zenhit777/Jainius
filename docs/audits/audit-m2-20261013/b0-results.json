@@ -1,0 +1,716 @@
+{
+  "protocol": {
+    "version": "P-G/1.0",
+    "hash": "8bd3da2985436414a1f8e6791c852e673424714b9d8b00b0f7e92780ed103d08",
+    "generation": {
+      "temperature": 0.0,
+      "top_p": 1.0,
+      "max_new_tokens": 512,
+      "stop": [
+        "<|im_end|>"
+      ],
+      "n_repetitions": 3,
+      "seeds": [
+        0,
+        1,
+        2
+      ]
+    },
+    "composite": {
+      "weights": {
+        "gsm8k": 0.14285714285714285,
+        "math500": 0.14285714285714285,
+        "mmlu": 0.14285714285714285,
+        "mmlu_pro": 0.14285714285714285,
+        "ifeval": 0.14285714285714285,
+        "humaneval": 0.14285714285714285,
+        "mbpp": 0.14285714285714285
+      },
+      "normalization": "none (scores natifs 0..1)",
+      "missing_rule": "score 0.0 + missing=True",
+      "dev_set": "aucun (pas de sélection de checkpoint avant M3)"
+    },
+    "system_prompts": {
+      "gsm8k": "Solve the math word problem step by step. Conclude with the final number after «####».",
+      "math500": "Solve the math problem step by step. Put the final answer in \\boxed{}.",
+      "mmlu": "Answer the multiple-choice question. Respond with a single letter (A, B, C or D) and nothing else.",
+      "mmlu_pro": "Answer the multiple-choice question. Respond with a single letter (A through J) and nothing else.",
+      "ifeval": "Follow every instruction in the prompt exactly.",
+      "humaneval": "You are a Python assistant. Complete the function described in the prompt. Output only the code.",
+      "mbpp": "You are a Python assistant. Write a function matching the description. Output only the code."
+    },
+    "stop_tokens": [
+      "<|im_end|>",
+      "<|endoftext|>"
+    ],
+    "deviation_max_new_tokens": "P-G/1.0 fige 512 ; plafonds relevés pour gsm8k/math500 (2048) et ifeval (1024) — troncature mesurée 60% MATH-500, 20% GSM8K à 512 (2026-10-12)"
+  },
+  "model": "Qwen/Qwen3.5-0.8B",
+  "engine": "SGLang http://127.0.0.1:30000 (B0-plain, AR natif)",
+  "environment": {
+    "python": "3.13.15",
+    "concurrency": 8,
+    "repetitions": 3,
+    "limit": null
+  },
+  "datasets": {
+    "gsm8k": {
+      "rep0": {
+        "rows": 1319,
+        "score": 0.5223654283548143,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 0,
+            "response_head": "To solve this problem, we need to break down Janet's daily earnings into three parts: eggs sold, eggs eaten, and muffins baked.\n\n**Step 1: Calculate the number of eggs sold.**\n*   Total eggs laid per "
+          },
+          {
+            "index": 2,
+            "response_head": "To find the profit Josh made, we need to determine the final value of the house and subtract the initial cost.\n\n**Step 1: Calculate the new value of the house.**\nThe problem states that the house's va"
+          },
+          {
+            "index": 3,
+            "response_head": "To find the total meters James runs a week, we need to multiply the number of sprints by the distance of each sprint.\n\n1.  **Identify the number of sprints per week**: James runs 3 sprints a week.\n2. "
+          },
+          {
+            "index": 4,
+            "response_head": "To find the total number of cups of feed Wendi needs to give her chickens in the final meal, we need to calculate the total amount of feed given in the morning and afternoon, and then add that to the "
+          },
+          {
+            "index": 5,
+            "response_head": "To solve this problem, we need to calculate the total cost for 16 glasses, considering the price of the first glass and the discounted price of every subsequent glass.\n\n**Step 1: Determine the price o"
+          }
+        ]
+      },
+      "rep1": {
+        "rows": 1319,
+        "score": 0.5200909780136467,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 0,
+            "response_head": "To solve this problem, we need to calculate the total earnings from selling the remaining eggs and then sum it up.\n\n**Step 1: Calculate the total number of eggs laid.**\nJanet lays 16 eggs per day.\n$$1"
+          },
+          {
+            "index": 2,
+            "response_head": "To find the profit Josh made, we need to determine the final value of the house and subtract the initial cost.\n\n**Step 1: Calculate the new value of the house.**\nThe problem states that the value incr"
+          },
+          {
+            "index": 3,
+            "response_head": "To find the total meters James runs a week, we need to multiply the number of sprints by the distance of each sprint.\n\n1.  **Identify the number of sprints per week:** James runs 3 sprints a week.\n2. "
+          },
+          {
+            "index": 4,
+            "response_head": "To find the total number of cups of feed Wendi needs to give her chickens in the final meal, we need to calculate the total amount of feed given in the morning and afternoon, and then add the feed for"
+          },
+          {
+            "index": 5,
+            "response_head": "To solve this problem, we need to calculate the total cost for 16 glasses, considering the price of the first glass and the discounted price of every subsequent glass.\n\n**Step 1: Determine the cost of"
+          }
+        ]
+      },
+      "rep2": {
+        "rows": 1319,
+        "score": 0.5231235784685367,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 0,
+            "response_head": "To solve this problem, we need to break down Janet's daily activities and calculate the earnings from selling the remaining eggs.\n\n**Step 1: Calculate the total number of eggs laid per day.**\nJanet la"
+          },
+          {
+            "index": 2,
+            "response_head": "To find the profit Josh made, we need to determine the final value of the house and subtract the initial cost.\n\n**Step 1: Calculate the new value of the house.**\nThe problem states that the house's va"
+          },
+          {
+            "index": 3,
+            "response_head": "To find the total meters James runs a week, we need to multiply the number of sprints by the distance of each sprint.\n\n1.  **Identify the number of sprints per week**: James runs 3 sprints a week.\n2. "
+          },
+          {
+            "index": 4,
+            "response_head": "To find the total number of cups of feed Wendi needs to give her chickens in the final meal, we need to calculate the total amount of feed given in the morning and afternoon, and then add that to the "
+          },
+          {
+            "index": 5,
+            "response_head": "To solve this problem, we need to calculate the total cost for 16 glasses, considering the price of the first glass and the discounted price of every subsequent glass.\n\n**Step 1: Determine the price o"
+          }
+        ]
+      },
+      "mean": 0.5218599949456659,
+      "std": 0.0012886074080345707,
+      "repetitions": [
+        0.5223654283548143,
+        0.5200909780136467,
+        0.5231235784685367
+      ],
+      "unimplemented_constraints": [],
+      "max_new_tokens": 2048
+    },
+    "math500": {
+      "rep0": {
+        "rows": 500,
+        "score": 0.324,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 1,
+            "response_head": "To find the value of the double sum\n\\[ S = \\sum_{j = 1}^\\infty \\sum_{k = 1}^\\infty \\frac{1}{(j + k)^3}, \\]\nwe can use the method of partial fractions or the method of generating functions. Here, we wi"
+          },
+          {
+            "index": 3,
+            "response_head": "To find the number of positive whole-number divisors of the number $196$, we follow these steps:\n\n### Step 1: Prime Factorization of 196\nFirst, we determine the prime factorization of $196$.\nWe can se"
+          },
+          {
+            "index": 4,
+            "response_head": "To determine which student has the greatest average speed, we need to calculate the average speed for each student based on the provided graph.\n\n**1. Understand the Graph and Data Points:**\nThe graph "
+          },
+          {
+            "index": 7,
+            "response_head": "To find the angle between the two given lines, we first need to determine the direction vectors of each line.\n\n**Step 1: Analyze the first line**\nThe equation of the first line is given by:\n\\[2x = 3y "
+          },
+          {
+            "index": 9,
+            "response_head": "To find the number of distinct values obtainable from the expression $2 \\cdot 3 \\cdot 4 \\cdot 5 + 1$ by inserting parentheses, we need to consider all possible ways to group the terms.\n\nThe original e"
+          }
+        ]
+      },
+      "rep1": {
+        "rows": 500,
+        "score": 0.338,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 1,
+            "response_head": "To find the value of the double sum\n\\[ S = \\sum_{j = 1}^\\infty \\sum_{k = 1}^\\infty \\frac{1}{(j + k)^3}, \\]\nwe can use the method of partial fractions or the method of generating functions. Here, we wi"
+          },
+          {
+            "index": 4,
+            "response_head": "To determine which student has the greatest average speed, we need to calculate the average speed for each student based on the provided graph.\n\n**1. Understand the Graph and Data Points:**\nThe graph "
+          },
+          {
+            "index": 5,
+            "response_head": "To find the perimeter of the regular hexagon, we will follow these steps:\n\n1.  **Analyze the properties of the equilateral triangles:**\n    *   A regular hexagon is divided into six equilateral triang"
+          },
+          {
+            "index": 7,
+            "response_head": "To find the angle between the two given lines, we first need to determine the direction vectors of each line.\n\n**Step 1: Analyze the first line**\nThe equation of the first line is given by:\n\\[2x = 3y "
+          },
+          {
+            "index": 9,
+            "response_head": "To find the number of distinct values obtainable from the expression $2 \\cdot 3 \\cdot 4 \\cdot 5 + 1$ by inserting parentheses, we need to consider all possible ways to group the terms.\n\nThe original e"
+          }
+        ]
+      },
+      "rep2": {
+        "rows": 500,
+        "score": 0.332,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 1,
+            "response_head": "To find the value of the double sum\n\\[ S = \\sum_{j = 1}^\\infty \\sum_{k = 1}^\\infty \\frac{1}{(j + k)^3}, \\]\nwe can use the method of partial fractions or the method of generating functions. Here, we wi"
+          },
+          {
+            "index": 4,
+            "response_head": "To determine which student has the greatest average speed, we need to calculate the average speed for each student based on the provided graph.\n\n**1. Understand the Graph and Data Points:**\nThe graph "
+          },
+          {
+            "index": 7,
+            "response_head": "To find the angle between the two given lines, we first need to determine the direction vectors of each line.\n\n**Step 1: Analyze the first line**\nThe equation of the first line is given by:\n\\[2x = 3y "
+          },
+          {
+            "index": 9,
+            "response_head": "To find the number of distinct values obtainable from the expression $2 \\cdot 3 \\cdot 4 \\cdot 5 + 1$ by inserting parentheses, we need to consider all possible ways to group the terms.\n\nThe original e"
+          },
+          {
+            "index": 10,
+            "response_head": "To find the least positive integer multiple of 30 that can be written with only the digits 0 and 2, we need to break down the problem into two parts:\n1.  Find the smallest multiple of 30 that consists"
+          }
+        ]
+      },
+      "mean": 0.3313333333333333,
+      "std": 0.005734883511361756,
+      "repetitions": [
+        0.324,
+        0.338,
+        0.332
+      ],
+      "unimplemented_constraints": [],
+      "max_new_tokens": 2048
+    },
+    "mmlu": {
+      "rep0": {
+        "rows": 14042,
+        "score": 0.446944879646774,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 1,
+            "response_head": "A"
+          },
+          {
+            "index": 3,
+            "response_head": "A"
+          },
+          {
+            "index": 4,
+            "response_head": "D\n\n**Step-by-step derivation:**\n\n1.  **Identify the ring structure**: The problem specifies the polynomial ring $\\mathbb{Z}_8[x]$, which consists of polynomials with coefficients in the finite field $"
+          },
+          {
+            "index": 5,
+            "response_head": "C"
+          },
+          {
+            "index": 7,
+            "response_head": "A"
+          }
+        ]
+      },
+      "rep1": {
+        "rows": 14042,
+        "score": 0.44794188861985473,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 1,
+            "response_head": "A"
+          },
+          {
+            "index": 3,
+            "response_head": "A"
+          },
+          {
+            "index": 4,
+            "response_head": "D\n\n**Step-by-step derivation:**\n\n1.  **Identify the ring structure**: The problem specifies the polynomial ring $\\mathbb{Z}_8[x]$, which consists of polynomials with coefficients in the finite field $"
+          },
+          {
+            "index": 5,
+            "response_head": "C"
+          },
+          {
+            "index": 7,
+            "response_head": "A"
+          }
+        ]
+      },
+      "rep2": {
+        "rows": 14042,
+        "score": 0.4478706736932061,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 1,
+            "response_head": "A"
+          },
+          {
+            "index": 3,
+            "response_head": "A"
+          },
+          {
+            "index": 4,
+            "response_head": "D\n\n**Step-by-step derivation:**\n\n1.  **Identify the ring structure**: The problem specifies the polynomial ring $\\mathbb{Z}_8[x]$, which consists of polynomials with coefficients in the finite field $"
+          },
+          {
+            "index": 5,
+            "response_head": "C"
+          },
+          {
+            "index": 7,
+            "response_head": "A"
+          }
+        ]
+      },
+      "mean": 0.44758581398661157,
+      "std": 0.00045414058941529566,
+      "repetitions": [
+        0.446944879646774,
+        0.44794188861985473,
+        0.4478706736932061
+      ],
+      "unimplemented_constraints": [],
+      "max_new_tokens": 512
+    },
+    "mmlu_pro": {
+      "rep0": {
+        "rows": 12032,
+        "score": 0.18758311170212766,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 0,
+            "response_head": "A"
+          },
+          {
+            "index": 1,
+            "response_head": "B"
+          },
+          {
+            "index": 3,
+            "response_head": "G"
+          },
+          {
+            "index": 4,
+            "response_head": "A"
+          },
+          {
+            "index": 9,
+            "response_head": "J"
+          }
+        ]
+      },
+      "rep1": {
+        "rows": 12032,
+        "score": 0.18824800531914893,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 0,
+            "response_head": "A"
+          },
+          {
+            "index": 1,
+            "response_head": "B"
+          },
+          {
+            "index": 3,
+            "response_head": "G"
+          },
+          {
+            "index": 4,
+            "response_head": "A"
+          },
+          {
+            "index": 9,
+            "response_head": "J"
+          }
+        ]
+      },
+      "rep2": {
+        "rows": 12032,
+        "score": 0.1887466755319149,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 0,
+            "response_head": "A"
+          },
+          {
+            "index": 1,
+            "response_head": "B"
+          },
+          {
+            "index": 3,
+            "response_head": "G"
+          },
+          {
+            "index": 4,
+            "response_head": "A"
+          },
+          {
+            "index": 9,
+            "response_head": "J"
+          }
+        ]
+      },
+      "mean": 0.18819259751773051,
+      "std": 0.0004766359301331282,
+      "repetitions": [
+        0.18758311170212766,
+        0.18824800531914893,
+        0.1887466755319149
+      ],
+      "unimplemented_constraints": [],
+      "max_new_tokens": 512
+    },
+    "ifeval": {
+      "rep0": {
+        "rows": 541,
+        "score": 0.2199630314232902,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 0,
+            "response_head": "The history of this nobleman begins in the 14th century when he was born in Tripoli. His family was a prominent trading group that controlled the Mediterranean trade routes. He was a man of great weal"
+          },
+          {
+            "index": 2,
+            "response_head": "[Name]\n[City, State, Zip Code]\n[Phone Number]\n[Email Address]\n[LinkedIn Profile URL]\n\n**PROFESSIONAL SUMMARY**\nHigh school graduate with a strong foundation in [Subject 1] and [Subject 2]. Proven trac"
+          },
+          {
+            "index": 3,
+            "response_head": "Write an email to my boss telling him that I am quitting. The email must contain a title wrapped in double angular brackets, i.e. <<title>>.\nFirst repeat the request word for word without change, then"
+          },
+          {
+            "index": 5,
+            "response_head": "* The man in the ball gown leans against the velvet wall, watching the woman in the sweatpants walk past him with a casual, unbothered stride.\n* The woman in the sweatpants stops abruptly, her eyes wi"
+          },
+          {
+            "index": 6,
+            "response_head": "PARAGRAPH 1\nThe sentence \"If the law is bad, you should not follow it\" is a clear and logical argument that prioritizes legal ethics over personal convenience. By asserting that the validity of a law "
+          }
+        ]
+      },
+      "rep1": {
+        "rows": 541,
+        "score": 0.21811460258780038,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 0,
+            "response_head": "The history of this nobleman begins in the 14th century when he was born in Tripoli. His family was of noble descent and held significant power in the region. He served as a military commander during "
+          },
+          {
+            "index": 2,
+            "response_head": "[Name]\n[City, State, Zip Code]\n[Phone Number]\n[Email Address]\n[LinkedIn Profile URL]\n\n**PROFESSIONAL SUMMARY**\nHigh school graduate with a strong foundation in [Subject 1] and [Subject 2]. Proven trac"
+          },
+          {
+            "index": 3,
+            "response_head": "Write an email to my boss telling him that I am quitting. The email must contain a title wrapped in double angular brackets, i.e. <<title>>.\nFirst repeat the request word for word without change, then"
+          },
+          {
+            "index": 5,
+            "response_head": "* The man in the ball gown leans against the velvet wall, watching the woman in the sweatpants walk past him with a casual, unbothered stride.\n* The woman in the sweatpants stops abruptly, her eyes wi"
+          },
+          {
+            "index": 6,
+            "response_head": "PARAGRAPH 1\nThe sentence \"If the law is bad, you should not follow it\" is a classic example of logical fallacy and moral absolutism. By presenting a negative condition as a positive imperative, the au"
+          }
+        ]
+      },
+      "rep2": {
+        "rows": 541,
+        "score": 0.21626617375231053,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 0,
+            "response_head": "The history of this nobleman begins in the 14th century when he was born in Tripoli. His family was of noble descent and held significant power in the region. He served as a military leader during the"
+          },
+          {
+            "index": 2,
+            "response_head": "[Name]\n[City, State, Zip Code]\n[Phone Number]\n[Email Address]\n[LinkedIn Profile URL]\n\n**PROFESSIONAL SUMMARY**\nHigh school graduate with a strong foundation in [Subject 1] and [Subject 2]. Proven trac"
+          },
+          {
+            "index": 3,
+            "response_head": "Write an email to my boss telling him that I am quitting. The email must contain a title wrapped in double angular brackets, i.e. <<title>>.\nFirst repeat the request word for word without change, then"
+          },
+          {
+            "index": 5,
+            "response_head": "* The man in the ball gown leans against the velvet wall, watching the woman in the sweatpants walk past him with a casual, unbothered stride.\n* The woman in the sweatpants stops abruptly, her eyes wi"
+          },
+          {
+            "index": 6,
+            "response_head": "PARAGRAPH 1\nThe sentence \"If the law is bad, you should not follow it\" is a clear and logical argument that prioritizes legal ethics over personal convenience. By asserting that the validity of a law "
+          }
+        ]
+      },
+      "mean": 0.21811460258780038,
+      "std": 0.001509235824265675,
+      "repetitions": [
+        0.2199630314232902,
+        0.21811460258780038,
+        0.21626617375231053
+      ],
+      "unimplemented_constraints": [
+        "detectable_format:constrained_response",
+        "language:response_language"
+      ],
+      "max_new_tokens": 1024
+    },
+    "humaneval": {
+      "rep0": {
+        "rows": 164,
+        "score": 0.2804878048780488,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 1,
+            "response_head": "def separate_paren_groups(paren_string: str) -> List[str]:\n    \"\"\" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to\n    separate those group into se"
+          },
+          {
+            "index": 2,
+            "response_head": "def truncate_number(number: float) -> float:\n    \"\"\" Given a positive floating point number, it can be decomposed into\n    and integer part (largest integer smaller than given number) and decimals\n   "
+          },
+          {
+            "index": 5,
+            "response_head": "def intersperse(numbers: List[int], delimeter: int) -> List[int]:\n    \"\"\" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'\n    >>> intersperse([], 4)\n    []\n "
+          },
+          {
+            "index": 6,
+            "response_head": "def parse_nested_parens(paren_string: str) -> List[int]:\n    \"\"\" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.\n    For each of the group, o"
+          },
+          {
+            "index": 8,
+            "response_head": "def sum_product(numbers: List[int]) -> Tuple[int, int]:\n    \"\"\" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.\n    Empty sum should be eq"
+          }
+        ]
+      },
+      "rep1": {
+        "rows": 164,
+        "score": 0.2865853658536585,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 1,
+            "response_head": "def separate_paren_groups(paren_string: str) -> List[str]:\n    \"\"\" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to\n    separate those group into se"
+          },
+          {
+            "index": 2,
+            "response_head": "def truncate_number(number: float) -> float:\n    \"\"\" Given a positive floating point number, it can be decomposed into\n    and integer part (largest integer smaller than given number) and decimals\n   "
+          },
+          {
+            "index": 5,
+            "response_head": "def intersperse(numbers: List[int], delimeter: int) -> List[int]:\n    \"\"\" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'\n    >>> intersperse([], 4)\n    []\n "
+          },
+          {
+            "index": 6,
+            "response_head": "def parse_nested_parens(paren_string: str) -> List[int]:\n    \"\"\" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.\n    For each of the group, o"
+          },
+          {
+            "index": 8,
+            "response_head": "def sum_product(numbers: List[int]) -> Tuple[int, int]:\n    \"\"\" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.\n    Empty sum should be eq"
+          }
+        ]
+      },
+      "rep2": {
+        "rows": 164,
+        "score": 0.2804878048780488,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 1,
+            "response_head": "def separate_paren_groups(paren_string: str) -> List[str]:\n    \"\"\" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to\n    separate those group into se"
+          },
+          {
+            "index": 2,
+            "response_head": "def truncate_number(number: float) -> float:\n    \"\"\" Given a positive floating point number, it can be decomposed into\n    and integer part (largest integer smaller than given number) and decimals\n   "
+          },
+          {
+            "index": 5,
+            "response_head": "def intersperse(numbers: List[int], delimeter: int) -> List[int]:\n    \"\"\" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'\n    >>> intersperse([], 4)\n    []\n "
+          },
+          {
+            "index": 6,
+            "response_head": "def parse_nested_parens(paren_string: str) -> List[int]:\n    \"\"\" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.\n    For each of the group, o"
+          },
+          {
+            "index": 8,
+            "response_head": "def sum_product(numbers: List[int]) -> Tuple[int, int]:\n    \"\"\" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.\n    Empty sum should be eq"
+          }
+        ]
+      },
+      "mean": 0.28252032520325204,
+      "std": 0.002874417809701389,
+      "repetitions": [
+        0.2804878048780488,
+        0.2865853658536585,
+        0.2804878048780488
+      ],
+      "unimplemented_constraints": [],
+      "max_new_tokens": 512
+    },
+    "mbpp": {
+      "rep0": {
+        "rows": 500,
+        "score": 0.254,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 1,
+            "response_head": "def sort_matrix(M):\n    \"\"\"\n    Sorts a given matrix in ascending order according to the sum of its rows.\n    \n    Parameters:\n        M (list of list of int): A 2D list representing the matrix.\n    \n"
+          },
+          {
+            "index": 2,
+            "response_head": "def most_common_words(dictionary):\n    \"\"\"\n    Count the most common words in a dictionary.\n    \n    Parameters:\n    dictionary (dict): A dictionary containing words and their frequencies.\n    \n    Re"
+          },
+          {
+            "index": 4,
+            "response_head": "def split_at_lowercase(s):\n    \"\"\"\n    Split a string at lowercase letters.\n    \n    Parameters:\n    s (str): The input string\n    \n    Returns:\n    list: A list of substrings split by lowercase lette"
+          },
+          {
+            "index": 5,
+            "response_head": "import re\n\ndef find_sequences_of_lowercase_letters_with_underscore(text):\n    \"\"\"\n    Find all sequences of lowercase letters joined with an underscore.\n    \n    Parameters:\n    text (str): The input "
+          },
+          {
+            "index": 7,
+            "response_head": "def remove_chars_from_first_string(first_string, second_string):\n    \"\"\"\n    Removes characters from the first string that are present in the second string.\n    \n    Parameters:\n    first_string (str)"
+          }
+        ]
+      },
+      "rep1": {
+        "rows": 500,
+        "score": 0.254,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 1,
+            "response_head": "def sort_matrix(M):\n    \"\"\"\n    Sorts a given matrix in ascending order according to the sum of its rows.\n    \n    Parameters:\n        M (list of list of int): A 2D list representing the matrix.\n    \n"
+          },
+          {
+            "index": 2,
+            "response_head": "def most_common_words(dictionary):\n    \"\"\"\n    Count the most common words in a dictionary.\n    \n    Parameters:\n    dictionary (dict): A dictionary containing words and their frequencies.\n    \n    Re"
+          },
+          {
+            "index": 4,
+            "response_head": "def split_at_lowercase(s):\n    \"\"\"\n    Split a string at lowercase letters.\n    \n    Parameters:\n    s (str): The input string\n    \n    Returns:\n    list: A list of substrings split by lowercase lette"
+          },
+          {
+            "index": 5,
+            "response_head": "import re\n\ndef find_sequences_of_lowercase_letters_with_underscore(text):\n    \"\"\"\n    Find all sequences of lowercase letters joined with an underscore.\n    \n    Parameters:\n    text (str): The input "
+          },
+          {
+            "index": 7,
+            "response_head": "def remove_chars_from_first_string(first_string, second_string):\n    \"\"\"\n    Removes characters from the first string that are present in the second string.\n    \n    Parameters:\n    first_string (str)"
+          }
+        ]
+      },
+      "rep2": {
+        "rows": 500,
+        "score": 0.254,
+        "generation_failures": 0,
+        "failures_sample": [
+          {
+            "index": 1,
+            "response_head": "def sort_matrix(M):\n    \"\"\"\n    Sorts a given matrix in ascending order according to the sum of its rows.\n    \n    Parameters:\n        M (list of lists of int): The input matrix.\n    \n    Returns:\n   "
+          },
+          {
+            "index": 2,
+            "response_head": "def most_common_words(dictionary):\n    \"\"\"\n    Count the most common words in a dictionary.\n    \n    Parameters:\n    dictionary (dict): A dictionary containing words and their frequencies.\n    \n    Re"
+          },
+          {
+            "index": 4,
+            "response_head": "def split_at_lowercase(s):\n    \"\"\"\n    Split a string at lowercase letters.\n    \n    Parameters:\n    s (str): The input string\n    \n    Returns:\n    list: A list of substrings split by lowercase lette"
+          },
+          {
+            "index": 5,
+            "response_head": "import re\n\ndef find_sequences_of_lowercase_letters_with_underscore(text):\n    \"\"\"\n    Find all sequences of lowercase letters joined with an underscore.\n    \n    Parameters:\n    text (str): The input "
+          },
+          {
+            "index": 7,
+            "response_head": "def remove_chars_from_first_string(first_string, second_string):\n    \"\"\"\n    Removes characters from the first string that are present in the second string.\n    \n    Parameters:\n    first_string (str)"
+          }
+        ]
+      },
+      "mean": 0.254,
+      "std": 0.0,
+      "repetitions": [
+        0.254,
+        0.254,
+        0.254
+      ],
+      "unimplemented_constraints": [],
+      "max_new_tokens": 512
+    }
+  },
+  "composite": 0.3205152382249134,
+  "noise_floor": {
+    "gsm8k": 0.0012886074080345707,
+    "math500": 0.005734883511361756,
+    "mmlu": 0.00045414058941529566,
+    "mmlu_pro": 0.0004766359301331282,
+    "ifeval": 0.001509235824265675,
+    "humaneval": 0.002874417809701389,
+    "mbpp": 0.0
+  },
+  "generation_failures": 0
+}
