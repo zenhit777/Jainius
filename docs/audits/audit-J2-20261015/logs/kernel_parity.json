@@ -1,0 +1,75 @@
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.9.1
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+{
+  "fork0_vs_ours0": {
+    "max_abs": 4.179659843444824,
+    "rmse": 0.8828539252281189,
+    "cosine": 0.6438719630241394
+  },
+  "fork0_vs_ours1": {
+    "max_abs": 4.499426364898682,
+    "rmse": 0.8253829479217529,
+    "cosine": 0.6946696043014526
+  },
+  "fork0_vs_ours2": {
+    "max_abs": 4.499426364898682,
+    "rmse": 0.832676887512207,
+    "cosine": 0.6908718347549438
+  },
+  "fork1_vs_ours0": {
+    "max_abs": 3.994070529937744,
+    "rmse": 0.9418321251869202,
+    "cosine": 0.49699893593788147
+  },
+  "fork1_vs_ours1": {
+    "max_abs": 1.430893898010254,
+    "rmse": 0.40532588958740234,
+    "cosine": 0.9887340068817139
+  },
+  "fork1_vs_ours2": {
+    "max_abs": 3.994070529937744,
+    "rmse": 0.8589974045753479,
+    "cosine": 0.6092159748077393
+  },
+  "fork2_vs_ours0": {
+    "max_abs": 2.7924466133117676,
+    "rmse": 0.5553801655769348,
+    "cosine": 0.9131665229797363
+  },
+  "fork2_vs_ours1": {
+    "max_abs": 2.72597074508667,
+    "rmse": 0.8749054670333862,
+    "cosine": 0.5585783123970032
+  },
+  "fork2_vs_ours2": {
+    "max_abs": 1.3089028596878052,
+    "rmse": 0.3990938067436218,
+    "cosine": 0.9869328737258911
+  },
+  "diag_mode1_per_t_maxabs": [
+    0.9117989540100098,
+    1.430893898010254,
+    0.3605995774269104,
+    0.7113546133041382,
+    0.5820842981338501,
+    0.9694099426269531
+  ],
+  "diag_scale": {
+    "fork_absmean": 0.7992337942123413,
+    "ours_absmean": 0.5049548745155334
+  },
+  "diag_T1_maxabs": 0.9117989540100098
+}

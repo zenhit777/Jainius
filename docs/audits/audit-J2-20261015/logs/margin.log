@@ -1,0 +1,61 @@
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.9.1
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+Skipping import of cpp extensions due to incompatible torch version. Please upgrade to torch >= 2.11.0 (found 2.9.1+cu128).
+Current Python version 3.10 is below the recommended 3.11 version. It is recommended to upgrade to Python 3.11 or higher for the best experience.
+The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights:   0%|          | 0/321 [00:00<?, ?it/s]Loading weights:  69%|██████▉   | 221/321 [00:00<00:00, 2209.85it/s]Loading weights: 100%|██████████| 321/321 [00:00<00:00, 3149.19it/s]
+{
+  "planets": {
+    "seed_piece": "1",
+    "rows": [
+      {
+        "top1": ".",
+        "top2": ")",
+        "gap": 7.5
+      },
+      {
+        "top1": " Earth",
+        "top2": " Mercury",
+        "gap": 0.625
+      },
+      {
+        "top1": "  \n",
+        "top2": "\n",
+        "gap": 2.5
+      }
+    ]
+  },
+  "square": {
+    "seed_piece": "```",
+    "rows": [
+      {
+        "top1": "python",
+        "top2": " python",
+        "gap": 6.75
+      },
+      {
+        "top1": "\n",
+        "top2": "\n\n",
+        "gap": 8.0
+      },
+      {
+        "top1": "def",
+        "top2": "import",
+        "gap": 5.25
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.9.1
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+Skipping import of cpp extensions due to incompatible torch version. Please upgrade to torch >= 2.11.0 (found 2.9.1+cu128).
+Current Python version 3.10 is below the recommended 3.11 version. It is recommended to upgrade to Python 3.11 or higher for the best experience.
+beta par tête: [0.718, 0.6944]
+tête 0: 1/beta=1.3928 ratio fork(beta)/ours=1.3928
+tête 1: 1/beta=1.4401 ratio fork(beta)/ours=1.4401
+max|fork(beta=None)-fork(beta=1)|: 0.0
+max|fork(beta=None)-close(beta=1)|: 2.384185791015625e-07

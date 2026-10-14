@@ -42,3 +42,26 @@ def compute_teacher_targets(
     hidden = hidden_fn(x0)  # [B, L, D] — dernier hidden causal de x0
     logits = lm_head(hidden)  # [B, L, V] — head AR brut prédit i+1 à position i
     return F.log_softmax(logits.roll(dims=1, shifts=1).float(), dim=-1)
+
+
+def compute_teacher_targets_shifted(
+    x0: torch.Tensor,
+    hidden_fn: torch.Callable[[torch.Tensor], torch.Tensor],
+    lm_head: torch.Callable[[torch.Tensor], torch.Tensor],
+) -> torch.Tensor:
+    """Cibles enseignant alignées `shifted` (J2, serving FLARE natif).
+
+    Convention serving (décodage Diffusion-Trust à graine : le jeton en
+    position de bloc i≥1 s'échantillonne depuis logits[i-1], la graine
+    en position 0 n'est jamais supervisée) : la cible du jeton i est la
+    distribution AR qui le prédit, soit le head brut à la position i-1 —
+    SANS décalage `roll` (l'appelant consomme l'indice i-1 des deux côtés,
+    étudiant comme enseignant).
+
+    Returns:
+        log_softmax(logits) float32 [B, L, V] (non décalé).
+    """
+    # Forward AR gelé sur x0 seul (même contexte propre que `current`).
+    hidden = hidden_fn(x0)  # [B, L, D] — dernier hidden causal de x0
+    logits = lm_head(hidden)  # [B, L, V] — position p prédit le jeton p+1
+    return F.log_softmax(logits.float(), dim=-1)

@@ -428,6 +428,82 @@ class TwoStreamRunner:
                 "le forward de débruitage a écrit l'état (runner)")
         return logits
 
+    @staticmethod
+    def _serving_denoise_block_mask(Bb, doc, device):
+        """Masque intra-bloc layout serving (denoise diffusion FLARE) :
+        ligne 0 (graine) causale (elle seule), lignes 1.. bidirectionnelles,
+        avec isolation documents. Le passé propre (clés externes) est géré
+        par l'appelant (visible en entier, même document)."""
+        allow_blk = torch.ones(Bb, Bb, dtype=torch.bool, device=device)
+        allow_blk[0, 1:] = False
+        if doc is not None:
+            same = doc[:, :, None] == doc[:, None, :]
+            allow_blk = allow_blk.unsqueeze(0) & same
+        else:
+            allow_blk = allow_blk.unsqueeze(0).expand(1, -1, -1)
+        return allow_blk
+
+    def denoise_block_shifted(self, state, block_ids, doc_ids=None):
+        """Débruitage layout serving (J2, convention `shifted`) : bloc
+        [graine, MASK×(Bb-1)], GDN mode 2 (graine causale, reste lu depuis
+        S̃_end), masque graine-causale, SANS écriture d'état.
+
+        Règle d'échantillonnage serving : le jeton en position i≥1 se tire
+        depuis logits[i-1] ; la position 0 (graine) n'est jamais supervisée ;
+        le dernier logit prédit la graine suivante (hors bloc).
+        Retourne les logits [B, Bb, V]."""
+        from jainius.model.arch import StateLeakError
+
+        B, Bb = block_ids.shape
+        dev = block_ids.device
+        if Bb < 2:
+            raise ValueError(f"bloc shifted : Bb={Bb} < 2 (graine + masques)")
+        fp_before = runner_state_fingerprint(state)
+        h = self.embed(block_ids)
+        doc = (torch.zeros(B, Bb, dtype=torch.long, device=dev)
+               if doc_ids is None else doc_ids)
+        past_doc = (state.docs[0] if state.docs else None)
+        pos = self._doc_positions(doc, past_doc=past_doc)
+        gi = ai = 0
+        for entry in self.layers:
+            kind, mod = entry["kind"], entry["mod"]
+            hn = mod.input_layernorm(h)
+            if kind == "attn":
+                kp = state.attn_k[ai] if ai < len(state.attn_k) else None
+                vp = state.attn_v[ai] if ai < len(state.attn_v) else None
+                dp = state.docs[ai] if ai < len(state.docs) else None
+                klen = kp.shape[1] if kp is not None else 0
+                allow_past = None
+                if kp is not None:
+                    if dp is not None:
+                        allow_past = (doc[:, :, None] == dp[:, None, :])
+                    else:
+                        allow_past = torch.ones(
+                            B, Bb, klen, dtype=torch.bool, device=dev)
+                allow_blk = self._serving_denoise_block_mask(Bb, doc, dev)
+                allow_blk = allow_blk.expand(B, -1, -1)
+                allow = (torch.cat([allow_past, allow_blk], dim=2)
+                         if allow_past is not None else allow_blk)
+                out, _, _ = self._attn_block(mod.self_attn, hn, pos,
+                                             kp, vp, allow)
+                h = h + out
+                ai += 1
+            else:
+                cell = entry["cell"]
+                st = state.gdn[gi]
+                S_init = st.S.clone()
+                C_init = st.conv.clone()
+                out, _ = cell.forward_noisy_block(
+                    hn, S_init, C_init, read_mode=2, num_clean=1)
+                h = h + out
+                gi += 1
+            h = h + mod.mlp(mod.post_attention_layernorm(h))
+        logits = self.lm_head(self.final_norm(h))
+        if runner_state_fingerprint(state) != fp_before:
+            raise StateLeakError(
+                "le forward de débruitage shifted a écrit l'état (runner)")
+        return logits
+
     def forward_train(self, x0, xt, unit_block, doc_ids=None, resp_start=None):
         """Two-stream complet : (h_x0, h_xt) [B, L, D] BRUTS (pré-norme).
 

@@ -1,0 +1,35 @@
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.9.1
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+Skipping import of cpp extensions due to incompatible torch version. Please upgrade to torch >= 2.11.0 (found 2.9.1+cu128).
+Current Python version 3.10 is below the recommended 3.11 version. It is recommended to upgrade to Python 3.11 or higher for the best experience.
+The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights:   0%|          | 0/321 [00:00<?, ?it/s]Loading weights:   6%|▌         | 20/321 [00:00<00:01, 188.43it/s]Loading weights:  12%|█▏        | 39/321 [00:00<00:01, 181.61it/s]Loading weights:  18%|█▊        | 58/321 [00:00<00:01, 141.58it/s]Loading weights:  23%|██▎       | 73/321 [00:00<00:01, 141.78it/s]Loading weights:  29%|██▉       | 93/321 [00:00<00:01, 156.20it/s]Loading weights:  35%|███▍      | 111/321 [00:00<00:01, 160.15it/s]Loading weights:  41%|████▏     | 133/321 [00:00<00:01, 175.33it/s]Loading weights:  47%|████▋     | 151/321 [00:00<00:01, 160.95it/s]Loading weights:  53%|█████▎    | 169/321 [00:01<00:00, 162.81it/s]Loading weights:  58%|█████▊    | 186/321 [00:01<00:00, 157.12it/s]Loading weights: 100%|██████████| 321/321 [00:01<00:00, 271.77it/s]
+{
+  "prompt_len": 25,
+  "clean_prefill": {
+    "max_abs": 0.84375,
+    "rmse": 0.05103524029254913,
+    "cosine": 0.9998130202293396,
+    "argmax_agree": 1.0
+  },
+  "kl": {
+    "good_shifted": 2.396029472351074,
+    "bad_student_idx": 3.430665969848633,
+    "bad_teacher_idx": 5.36750602722168,
+    "bad_noshift": 3.9514427185058594
+  },
+  "n_supervised": 24
+}

@@ -296,9 +296,14 @@ class GDNRefLayer:
             k = k.repeat_interleave(self.repeat, dim=2)
         return q, k, v, z, g, beta
 
-    def forward_noisy_block(self, h_block, S_init, conv_init):
+    def forward_noisy_block(self, h_block, S_init, conv_init, *,
+                              read_mode: int = 0, num_clean: int = 0):
         """Sémantique planifiée B0 : récurrence depuis S_init (copie, pas
-        d'écriture du propre), lecture de TOUS les jetons depuis S_end.
+        d'écriture du propre), lecture selon `read_mode` (défaut 0 = gelé) :
+        0 = TOUS les jetons depuis S_end (chemin historique `current`) ;
+        1 = lecture causale par position (commit serving) ;
+        2 = `num_clean` premières positions causales, le reste depuis S_end
+        (denoise serving : graine causale + bloc bidirectionnel, J2).
         -> (out [B, L, Vdim], S_end).
 
         Étape D : batch×têtes fusionnées + lecture S̃_end en un einsum
@@ -320,12 +325,30 @@ class GDNRefLayer:
         gf = g.reshape(B, L, H).permute(0, 2, 1).reshape(N, L)
         bf = beta.reshape(B, L, H).permute(0, 2, 1).reshape(N, L)
         s0 = S_init.reshape(N, K, Vd)
-        _, send = gdn_run_batched(qf, kf, vf, gf, bf, S0=s0)
-        # Lecture S̃_end pour tous les jetons en une opération :
-        # o[b,t,h,v] = Σ_k S_end[b,h,k,v] · q[b,t,h,k].
-        core = torch.einsum("nhkv,nhtk->nhtv",
-                            send.reshape(B, H, K, Vd),
-                            qn.permute(0, 2, 1, 3)).permute(0, 2, 1, 3)
+        outs, send = gdn_run_batched(qf, kf, vf, gf, bf, S0=s0)
+        if read_mode == 1:
+            core = outs.reshape(B, H, L, Vd).permute(0, 2, 1, 3)
+        elif read_mode == 2:
+            if not 0 <= num_clean <= L:
+                raise ValueError(
+                    f"read_mode=2 : num_clean={num_clean} hors [0, {L}]")
+            core = outs.reshape(B, H, L, Vd).permute(0, 2, 1, 3).clone()
+            if num_clean < L:
+                # Lecture S̃_end pour tous les jetons en une opération :
+                # o[b,t,h,v] = Σ_k S_end[b,h,k,v] · q[b,t,h,k].
+                tail = torch.einsum(
+                    "nhkv,nhtk->nhtv", send.reshape(B, H, K, Vd),
+                    qn.permute(0, 2, 1, 3)[:, :, num_clean:, :],
+                ).permute(0, 2, 1, 3)
+                core[:, num_clean:] = tail
+        else:
+            if read_mode != 0:
+                raise ValueError(f"read_mode inconnu : {read_mode}")
+            # Lecture S̃_end pour tous les jetons en une opération :
+            # o[b,t,h,v] = Σ_k S_end[b,h,k,v] · q[b,t,h,k].
+            core = torch.einsum("nhkv,nhtk->nhtv",
+                                send.reshape(B, H, K, Vd),
+                                qn.permute(0, 2, 1, 3)).permute(0, 2, 1, 3)
         hf = self._hf
         W_out = self._live(hf.out_proj.weight, core.dtype)
         out = self._finish(core, z).reshape(B, L, -1) @ W_out.T

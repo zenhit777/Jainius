@@ -1,0 +1,28 @@
+== date (UTC) ==
+Wed Oct 14 01:52:57 UTC 2026
+== GPU ==
+timestamp, name, utilization.gpu [%], memory.used [MiB], memory.total [MiB]
+2026/10/14 03:52:57.882, NVIDIA GeForce RTX 5090, 4 %, 1175 MiB, 32607 MiB
+== Processus GPU (doit être VIDE avant une mesure) ==
+pid, used_gpu_memory [MiB]
+== Conteneurs Docker ==
+qdrant	qdrant/qdrant:latest	Up 37 hours	0.0.0.0:6333-6334->6333-6334/tcp, [::]:6333-6334->6333-6334/tcp
+== Images Docker — moteurs de serving (SGLang, vLLM, llmd, Qdrant) ==
+lmsysorg/sglang:latest	52.2GB
+lmsysorg/sglang:dev-cu13	47.4GB
+qdrant/qdrant:latest	270MB
+vllm/vllm-openai:latest	29.9GB
+zmlai/llmd:cuda	6.84GB
+== venvs Python (/home/sjteb/.venvs) ==
+/home/sjteb/.venvs/flare-oracle/bin/python : 2.10.0+cu128 4.57.1
+/home/sjteb/.venvs/jainius-check/bin/python : 2.14.1+cu130 5.10.2
+/home/sjteb/.venvs/opdlm-parity/bin/python : 2.11.0+cu128 4.52.4
+== Python système ==
+2.12.0+cu130 5.10.2
+== Cache HF — modèles Jainius ==
+/home/sjteb/.cache/huggingface/hub/models--Qwen--Qwen3-0.6B
+/home/sjteb/.cache/huggingface/hub/models--Qwen--Qwen3.5-0.8B
+/home/sjteb/.cache/huggingface/hub/models--Qwen--Qwen3.5-27B
+/home/sjteb/.cache/huggingface/hub/models--Qwen--Qwen3.5-2B
+/home/sjteb/.cache/huggingface/hub/models--Qwen--Qwen3.6-27B
+/home/sjteb/.cache/huggingface/hub/models--Qwen--Qwen3.6-27B-FP8

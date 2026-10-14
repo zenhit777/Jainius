@@ -1,0 +1,24 @@
+
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.9.1
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+Skipping import of cpp extensions due to incompatible torch version. Please upgrade to torch >= 2.11.0 (found 2.9.1+cu128).
+Current Python version 3.10 is below the recommended 3.11 version. It is recommended to upgrade to Python 3.11 or higher for the best experience.
+The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights:   0%|          | 0/321 [00:00<?, ?it/s]Loading weights:   5%|▌         | 17/321 [00:00<00:01, 162.89it/s]Loading weights:  11%|█         | 34/321 [00:00<00:02, 131.99it/s]Loading weights:  15%|█▍        | 48/321 [00:00<00:02, 134.91it/s]Loading weights:  20%|█▉        | 63/321 [00:00<00:01, 132.00it/s]Loading weights:  24%|██▍       | 77/321 [00:00<00:01, 132.51it/s]Loading weights:  31%|███       | 98/321 [00:00<00:01, 147.81it/s]Loading weights:  36%|███▋      | 117/321 [00:00<00:01, 155.02it/s]Loading weights:  41%|████▏     | 133/321 [00:00<00:01, 142.40it/s]Loading weights:  48%|████▊     | 154/321 [00:01<00:01, 156.54it/s]Loading weights:  53%|█████▎    | 170/321 [00:01<00:01, 147.25it/s]Loading weights: 100%|██████████| 321/321 [00:01<00:00, 272.89it/s]
+{"match": true, "predicted": "126", "reference": "126"}
+{"match": true, "predicted": "The capital of France is Paris.", "reference": "The capital of France is Paris."}
+{"match": false, "predicted": "```python\ndef square(n):\n    return n * n\n```", "reference": "```python\ndef square(number):\n    return number * number\n```"}
+{"match": false, "predicted": "1. Earth  \n2. Mars  \n3.", "reference": "1. Mercury  \n2. Venus  \n3. Earth"}
+MATCH: 2/4
