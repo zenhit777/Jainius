@@ -1,0 +1,359 @@
+{
+  "model": "yuchen-zhu-zyc/HybridDiffusion-2B",
+  "port": 31000,
+  "n": 50,
+  "accuracy": 0.54,
+  "wall_s": 152.41189513599966,
+  "items": [
+    {
+      "index": 0,
+      "reference": "18",
+      "predicted": "18",
+      "correct": true,
+      "completion": "Janet\u2019s ducks lay 16 eggs per day.\n\nStep 1: She eats 3 eggs for breakfast every morning.\n\nStep 2: She bakes muffins for 4 friends every day, which requires 4 eggs.\n\nStep 3: Total eggs used per day = 3 (forfast) + 4 (for muffins) = 7 eggs.\n\nStep 4: Eggs left to sell = 16 total eggs  \u2212 7 used = 9 eggs.\n\nStep 5: She sells the 9 eggs at $2 per egg.\n\nStep 6: Daily sales = 9 eggs \u00d7 $2 per egg = $18.\n\nFinal answer: 18"
+    },
+    {
+      "index": 1,
+      "reference": "3",
+      "predicted": "3",
+      "correct": true,
+      "completion": "To solve how many bolts of blue and white fiber are needed for the robe, we\u2019ll break it down step by step.\n\n**Step 1: Understand the requirement**\nThe robe requires:\n- 2 bolts of blue fiber\n- Half that much white fiber\n\n**Step 2: Calculate the amount of white fiber needed**\nHalf of 2 is:\n\\[\n\\frac{2}{2} = 1\n\\]\nSo, 1 bolt of white fiber is needed.\n\n**Step 3: Calculate the total number of bolts needed**\nAdd the blue and white fiber together:\n\\[\n2 \\text{ (blue)} + 1 \\text{ (white)} = 3\n\\]\n\nTherefore, the total number of bolts needed is 3.\n\nFinal answer: 3"
+    },
+    {
+      "index": 2,
+      "reference": "70000",
+      "predicted": null,
+      "correct": false,
+      "completion": "Step 1: Determine the total amount Josh invested in the house.\nJosh bought the house for $80,000 and put $50,000 in repairs. So, he invested a total of $80,000 + $50,000 = $130,000.\n\nStep 2: Calculate the increase in the house's value.\nThe problem states that the increase's value was 150% of the value increase the repairs caused. However, it doesn't specify that the 150% increase was caused by the repairs. To find the profit, we need to consider the increase in value caused by the repairs.\n\nStep 3: Find the increase in value caused by the repairs.\nSince the problem doesn't provide specific information about the exact of the 150% increase, we cannot determine the value increase caused by the repairs. In, without this information, we cannot accurately calculate the profit.\n\nStep 4: State the conclusion.\nWithout knowing information about the value increase caused by the repairs, we cannot accurately calculate the profit Josh made.\n\nFinal answer: <number>"
+    },
+    {
+      "index": 3,
+      "reference": "540",
+      "predicted": "180",
+      "correct": false,
+      "completion": "James runs 3 sprints each week.  \nEach sprint is 60 meters long.  \n\nTo find the total distance in one sprint:  \n3 sprints \u00d7 60 meters per sprint = 180 meters per week.  \n\nTherefore, James runs a total of 180 meters a week.  \n\nFinal answer: 180"
+    },
+    {
+      "index": 4,
+      "reference": "20",
+      "predicted": null,
+      "correct": false,
+      "completion": "We are told that Wendi gives her of 20 chickens three meals per day, with each meal giving each chicken 3 cups of feed.\n\nSo, first, we calculate the total amount of feed given per chicken per day:\n\nEach chicken gets 3 cups per meal \u00d7 3 meals = 9 cups per day.\n\nNow, multiply by the number of chickens:\n\nTotal cups per day = 9 cups/chicken \u00d7 20 chickens = 180 cups.\n\nAlternatively, we can add up the feed for each meal:\n\n- Morning: 15 cups for 20 chickens \u2192 15 \u00d7 20 = 300 cups\n- Afternoon: 25 cups for 20 chickens \u2192 25 \u00d7 20 = 500 cups\n- Final meal: ? cups for 20 chickens\n\nTotal feed per day = 300 + 500 + ? = 800 + ?\n\nBut we already know the total per day must be 180 cups per chicken \u00d7 20 chickens = 3600 cups.\n\nSo:\n\n800 + ? = 3600  \n\u2192 ? = 3600 - 800 = 2800\n\nWait \u2014 this seems off. Let's double-check.\n\nActually, there\u2019s a mistake in interpreting the per-chicken total.\n\nLet\u2019s realculate the per-chicken daily feed:\n\nEach chicken gets 3 cups per meal \u00d7 3 meals = 9 cups per day.\n\nTotal per day = 9 \u00d7 20 = 180 cups.\n\nSo total feed per day = 180 cups.\n\nNow, let the final meal have x cups for 20 chickens.\n\nTotal feed:\n\nMorning: 15 \u00d7 20 = 300  \nAfternoon: 25 \u00d7 20 = 500  \nFinal: x \u00d7 20\n\nSum: 300 + 500 + 20x = 800 + 20x\n\nSet equal to total per day:\n\n800 + 20x = 180\n\nNow solve for x:\n\n20x = 180 - 800 = -620\n\nBut x can\u2019t be negative \u2014 that can\u2019t be.\n\nSo something\u2019s wrong"
+    },
+    {
+      "index": 5,
+      "reference": "64",
+      "predicted": "50",
+      "correct": false,
+      "completion": "Kylar wants to buy 16 glasses.\n\nThe first glass costs $5.\n\nThe second glass costs 60% of $5.  \n$5 \u00d7 0.6 = = $3\n\nThird glass also costs 60% of the first price.  \n$5 \u00d7 0.6 = = $3\n\nAnd so on.\n\nFrom the second glass onward, each glass costs $60% of the first price.\n\nSo, 15 glasses (from the second to the sixteenth) each cost $3.\n\n$3 \u00d7 15 = = $45\n\nAdd the first of the 16 glasses: $5\n\nTotal cost = $5 + $45 = = $50\n\nFinal answer: 50"
+    },
+    {
+      "index": 6,
+      "reference": "260",
+      "predicted": "340",
+      "correct": false,
+      "completion": "We are told that: has twice as many sheep as Seattle.  \n has 4 times as many sheep as Seattle.  \n has has 20 sheep.\n\nSo, first, let\u2019s find out many sheep has Charleston.\n\ncharleston has 4 times as many sheep as Seattle:  \n= 4 \u00d7 20 = 80 sheep.\n\ntoulouse has twice as many sheep as Charleston:  \n= 2 \u00d7 80 = 160 sheep.\n\nNow, add all three:  \n= 100 (Seattle) + 80 (Charleston) + 160 (Toulouse) = 340 sheep.\n\nFinal answer: 340"
+    },
+    {
+      "index": 7,
+      "reference": "160",
+      "predicted": null,
+      "correct": false,
+      "completion": "We are asked to find the total time Carla takes to download a 200 GB file, given her normal download speed and a forced restart at 40% completion the way through.\n\nLet\u2019s break down the problem step by step.\n\n---\n\n### Step 1: Understand Carla\u2019s download speed\nCarla can download **2 GB per minute**.\n\n---\n\n### Step 2: Analy the file size\nThe file is **200 GB** in total.\n\n---\n\n### Step 3: Find out how much of the file is downloaded before the restart\n\nAt 40% of the way through the download, she has downloaded:\n\n\\[\n200 \\times 0.40 = 80 \\text{ GB}\n\\]\n\nSo, she has downloaded **80 GB** before the restart.\n\n---\n\n### Step 4: Calculate the time it took to download that 80 GB\n\nGiven she downloads at **2 GB per minute**, the time to download 80 GB is:\n\n\\[\n\\frac{80 \\text{ GB}}{2 \\text{ GB/minute}} = 40 \\text{ minutes}\n\\]\n\nSo, the first part of the download took **40 minutes**.\n\n---\n\n### Step 5: The restart takes 20 minutes\n\nThe file forces a restart to install updates, which takes **20 minutes**.\n\nNote: The restart itself does not count as download time \u2014 it\u2019s a pause due to system action. But since it happens at 40% progress, we include the 20 minutes as an additional pause.\n\nHowever, after the restart, the download **restarts from the beginning**, so the 200 GB is downloaded downloaded from scratch.\n\n---\n\n### Step 6: After the restart, she downloads the remaining 120 GB\n\n\\[\n200 - 80 = 120 \\text{ GB}\n\\]\n\nTime to download 120 GB at 2 GB/min:\n\n\\[\n\\frac{120}{2} = 60 \\text{ minutes}\n\\]\n\n---\n\n### Step 7: Total time = download time before restart + restart time + download time after restart\n\n\\[\n40 \\text{ min} + 20 \\text{ min} + 60 \\text{ min} = 120 \\"
+    },
+    {
+      "index": 8,
+      "reference": "45",
+      "predicted": null,
+      "correct": false,
+      "completion": "We are given that John starts driving for 3 hours at 60 mph, then turns around to get home, spends 2 hours in traffic, drives at 30 mph for a half-hour, and then the remaining time of the 4-hour trip he can drive at 80 mph. We will calculate his total distance from home at the end of those 4 hours.\n\n**Step 1: Calculate the distance John covers during the first 3 hours of driving.**\n\n- **Time ( = speed \u00d7 duration)**: The speed at 60 mph, for 3 hours, is \\(60 \\text{ mph} \\times 3 \\text{ hours} = 180 \\text{ miles}\\).\n- **Distance ( = speed \u00d7 time)**: So180 miles.\n\n**Step 2: Calculate the distance John covers during the 2 hours of standstill traffic.**\n\n- **Time**: 2 hours.\n- **Speed**: 0 mph (no driving).\n- **Distance**: \\(0 \\text{ mph} \\times 2 \\text{ hours} = 0 \\text{ miles}\\).\n\n**Step 3: Calculate the distance John covers during the 0.5 hours at 30 mph.**\n\n- **Time**: 0.5 hours.\n- **Speed**: 30 mph.\n- **Distance**: \\(30 \\text{ mph} \\times 0.5 \\text{ hours} = 15 \\text{ miles}\\).\n\n**Step 4: Calculate the distance John covers during the remaining time of the 4-hour trip at 80 mph.**\n\n- **Total trip time**: 4 hours.\n- **Time used up to the start of this period**: 3 hours + 2 hours = 5 hours.\n- **Time remaining for this period**: \\(4 \\text{ hours} - 5 \\text{ hours} = -1 \\text{ hour}\\).\n\nWait, that gives a negative time, which is impossible. There seems a mistake in interpreting the problem. Let's re-read and clarify the timeline.\n\n**Revised Timeline Interpretation:**\n\n1.  **First Period (Driving)**: John drives for 3 hours at 60 mph.\n2.  **Turnaround & Traffic**: He turns around, tries to get home, and spends the next 2 hours in traffic (so this is part of"
+    },
+    {
+      "index": 9,
+      "reference": "460",
+      "predicted": null,
+      "correct": false,
+      "completion": "Step 1: Determine the regular hourly rate.  \nEliza\u2019s a wage rate is $10 per hour for the first 40 hours.  \nStep 2: Calculate the earnings for the first 40 hours.  \nMultiply the regular rate by the number of hours worked:  \n$10 \u00d7 40 = $400.  \nStep 3: Calculate the overtime earnings.  \nOvertime is paid at 1.2 times the regular rate.  \nShe worked 45 hours, so 45 - 40 = 5 hours of overtime.  \nOvertime earnings = 5 \u00d7 $10 \u00d7 1.2 = $60.  \nStep 4: Add regular earnings and overtime earnings to find total earnings.  \nTotal earnings = $400 + $60 = $460.  \nFinal answer: $460"
+    },
+    {
+      "index": 10,
+      "reference": "366",
+      "predicted": "366",
+      "correct": true,
+      "completion": "The program had 60 downloads in the first month.\n\nIn the second month, the number of downloads was three times as many as the first month:  \n3 \u00d7 60 = 180 downloads.\n\nIn the third month, the number of downloads was reduced by 30% from the second month\u2019s value.  \nA 30% reduction means 30% of 180 were removed:  \n0.30 \u00d7 180 = 54 downloads.  \nSo, the number of downloads in the third month is:  \n180 - 54 = 126 downloads.\n\nNow, we up the downloads over the three months:  \nFirst month: 60  \nSecond month: 180  \nThird month: 126  \n\nTotal downloads = 60 + 180 + 126 = 366\n\nFinal answer: 366"
+    },
+    {
+      "index": 11,
+      "reference": "694",
+      "predicted": "694",
+      "correct": true,
+      "completion": "To find the total cost of the pastries Toula bought, we calculate the cost of each type separately and then add them together.\n\n1. **Donuts**:  \n   Toula bought 3 dozen donuts at $68 per dozen.  \n   Cost = 3 \u00d7 $68 = $204\n\n2. **Mini cupcakes**:  \n   She bought 2 dozen mini cupcakes at $80 per dozen.  \n   Cost = 2 \u00d7 $80 = $160\n\n3. **Mini cheesecakes**:  \n   She bought 6 dozen mini cheesecakes at $55 per dozen.  \n   Cost = 6 \u00d7 $55 = $330\n\nNow, add the costs costs together:  \nTotal cost = $204 (donuts) + $160 (cupcakes) + $330 (cheesecakes) = $694\n\nFinal answer: 694"
+    },
+    {
+      "index": 12,
+      "reference": "13",
+      "predicted": null,
+      "correct": false,
+      "completion": "To determine when Carlos starts earning money on the lemon tree, we need to find the **first year** he makes a profit \u2014 meaning the total money he spends from planting exceeds the total money he earns from selling lemons.\n\n---\n\n### Step 1: Understand the costs\n\n- **Cost to plant the tree**: $90 (one-time cost).\n- **Annual cost to water and feed**: $3 per year.\n\nSo, **total annual cost** (including and excluding planting) is:\n$$\n\\text{Annual cost} = 90 + 3 = \\$93\n$$\n\nBut means:\n- Year 0 (planting): $90\n- Years 1 to : $93 per year\n\n---\n\n### Step 2: Understand the revenue\n\n- Each lemon, when sold, earns $1.5.\n- Each year, the tree grows **7 lemons**.\n- So, **annual revenue** is:\n$$\n\\text{Revenue} = 7 \\times 1.5 = \\$10.50\n$$\n\n---\n\n### Step 3: Calculate net income each year\n\n- **Year 0**: Loses $90\n- **Year 1**: Loses $93, earns $10.50 \u2192 Net loss = $93 - $10.50 = **$82.50**\n- **Year 2**: Loses $93, earns $10.50 \u2192 Net loss = $82.50\n- This continues \u2014 **no income until he sells some lemons**.\n\n---\n\n### Step 4: When does he start earning?\n\nHe only **earns money when he sells lemons**, which happens **after the tree has produced them that year**.\n\nSo, in **Year 1**, he sells 7 lemons \u2192 $10.50 earned.\n\nBut he also spent $93. So, net income: **negative**\n\nWait \u2014 that\u2019s a problem.\n\nBut let's think carefully:\n\nWait \u2014 is the $90 planting cost **one-time**? Yes.\n\nThen:\n\n- **Year 0**: He pays $90 (cost)\n- **Year 1**: He pays $93, sells $10.50 \u2192 Net: $93 - $10.50 = **$82.50"
+    },
+    {
+      "index": 13,
+      "reference": "18",
+      "predicted": null,
+      "correct": false,
+      "completion": "Let\u2019s break down the problem step by step.\n\nWe\u2019re told:\n\n- Melanie has **5 vacuum cleaners left**.\n- She sold **a third** of her vacuum cleaners at the **green house**.\n- She sold **2 more** at the **red house**.\n- Then, she sold **half of what was left** at the **orange house**.\n- After all these sales, she has **5 left**.\n\nWe need to find out **how many vacuum cleaners she started with**.\n\nLet\u2019s denote the total number of vacuum cleaners she started with as **N**.\n\n---\n\n### Step 1: Green House\nShe sold **a third** of N at the green house.\n\nSo, she sold:  \n> $ \\frac{1}{3}N $\n\nNumber of vacuum cleaners left after green house:  \n> $ N - \\frac{1}{3}N = \\frac{2}{3}N $\n\n---\n\n### Step 2: Red House\nShe sold **2 more** at the red house.\n\nSo, she sold:  \n> 2 vacuum cleaners\n\nNumber of vacuum cleaners left after red house:  \n> $ \\frac{2}{3}N - 2 $\n\n---\n\n### Step 3: Orange House\nShe sold **half of what was left** at the orange house.\n\nSo, she sold:  \n> $ \\frac{1}{2} \\left( \\frac{2}{3}N - 2 \\right) $\n\nNow, the number of vacuum cleaners left after orange house is:  \n> $ \\left( \\frac{2}{3}N - 2 \\right) - \\frac{1}{2} \\left( \\frac{2}{3}N - 2 \\right) $\n\nLet\u2019s simplify that:\n\nLet $ A = \\frac{2}{3}N - 2 $  \nThen she sold $ \\frac{1}{2}A $, so remaining is $ A - \\frac{1}{2}A = \\frac{1}{2}A $\n\nSo:  \n> $ \\frac{1}{2} \\left( \\frac{2}{3}N - 2 \\right) $\n\n---\n\n### Step 4: Total Left = 5\n\nAfter orange house, she has 5 left:\n\n> $ \\frac{1}{2} \\left( \\frac{2}{3}N"
+    },
+    {
+      "index": 14,
+      "reference": "60",
+      "predicted": "60",
+      "correct": true,
+      "completion": "We are given a dance class of 20 students.\n\n-. 20% of the students enrolled in contemporary dance:\n  20% of 20 = 0.20 \u00d7 20 = 4 students.\n\n-. 25% of the remaining students enrolled in jazz dance:\n  Remaining remaining = 20 \u2212 4 = 16 students.\n  25% of 16 = 0.25 \u00d7 16 = 4 students.\n\n-. The rest enrolled in hip-hop dance:\n  Remaining after = 16 \u2212 4 = 12 students.\n\nSo. 12 students enrolled in hip-hop dance.\n\n-. Find find what percentage of the entire class 12 students represent:\n  Percentage = (12 / 20) \u00d7 100 = 60%.\n\nFinal answer: 60%"
+    },
+    {
+      "index": 15,
+      "reference": "125",
+      "predicted": "125",
+      "correct": true,
+      "completion": "We are given two purchase plans:\n\n1. **Jewelry**: Purchased at $5,000  \n   Market appreciation: +2.5%\n\n2. **Electronic gadgets**: Purchased at $8,000  \n   Market appreciation: +1.2%\n\nWe want to compare the total profit from each plan after the market gains and determine which one yields a higher profit.\n\n---\n\n### Step 1: Calculate the ** value** of each investment after appreciation\n\n#### Jewelry:\n\\[\n5text000 \\times (1 + 0.025) = 5000 \\times 1.025 = 5125\n\\]\n\n#### Electronic gadgets:\n\\[\n8000 \\times (1 + 0.012) = 8000 \\times 1.012 = 8096\n\\]\n\n---\n\n### Step 2: Calculate the **profit** for each plan\n\nProfit = Final Value \u2013 Initial Cost\n\n#### Jewelry profit:\n\\[\n5125 - 5000 = 125\n\\]\n\n#### Electronic gadgets profit:\n\\[\n8096 - 8000 = 96\n\\]\n\n---\n\n### Step 3: Compare the profits\n\n- Jewelry profit: **$125**\n- Electronic gadgets profit: **$96**\n\nSince $125 > $96, the jewelry purchase yields a higher profit.\n\n---\n\n### Final Answer:\n\nFinal answer: 125"
+    },
+    {
+      "index": 16,
+      "reference": "230",
+      "predicted": "230",
+      "correct": true,
+      "completion": "We are told that two trains leave San Rafael at the same time and travel westward for 80 miles. Then, the next day, they travel northwards for 150 miles. The question asks for the distance covered by each train in the two days.\n\nHowever, the problem does not specify the type or path of the trains (e.g., straight lines, curves, constant), and it does not provide information about their speeds or whether they stop or continue.\n\nBut notice that both trains travel **80 miles westward** on the first day and **150 miles northward** on the second day. There is no mention of direction change or path beyond these two movements.\n\nTherefore, the distance covered by each train in the two days can be computed as the sum of the distances traveled each day:\n\n- First day: 80 miles (west)\n- Second day: 150 miles (north)\n\nSo, total distance per train = 80 + 150 = 230 miles.\n\nSince both trains perform the same movements (same directions and distances), each train covers the same total distance.\n\nFinal answer: 230"
+    },
+    {
+      "index": 17,
+      "reference": "57500",
+      "predicted": "57500",
+      "correct": true,
+      "completion": "Step 1: Calculate Jill's weekly salary as a teacher.  \nShe is paid $20 per hour and works 35 hours a week.  \nWeekly teacher salary = 20 \u00d7 35 = $700  \n\nStep 2: Calculate Jill's weekly salary as a cheerleading coach.  \nShe is paid $30 per hour and works 15 hours a week.  \nWeekly coach salary = 30 \u00d7 15 = $450  \n\nStep 3: Calculate Jill's total weekly salary.  \nTotal weekly salary = $700 (teacher) + $450 (coach) = $1,150  \n\nStep 4: Calculate Jill's annual salary.  \nShe works 50 weeks a year.  \nAnnual salary = $1,150 \u00d7 50 = $57,500  \n\nFinal answer: 57500"
+    },
+    {
+      "index": 18,
+      "reference": "7",
+      "predicted": null,
+      "correct": false,
+      "completion": "Let's solve this step by step.\n\n**Step 1: Find out how many eggs Claire eats in one day.**\nClaire makes 3 egg omelets every morning.\n\n**Step 2: Find out how many days are in one week.**\nThere are 7 days in one week.\n\n**Step 3: Find the total number of eggs she eats in one week.**\nEggs per day \u00d7 Days in week = Total eggs per week\n3 eggs \u00d7 7 days = 21 eggs per week\n\n**Step 4: Find the total number of eggs she eats in one month.**\nLetg assume a month has 30 days (this is a common approximation for these types of problems).\nEggs per week \u00d7 Days in month = Total eggs per month\n21 eggs \u00d7 30 days = 630 eggs per month\n\n**Step 5: Find the total number of eggs she eats in one year.**\nLetg assume a year has 12 months.\nEggs per month \u00d7 Months in year = Total eggs per year\n630 eggs \u00d7 12 months = 7,560 eggs per year\n\n**Step 6: Find the total number of eggs she eats in 4 weeks.**\nEggs per year \u00d7 Number of years = Total eggs in 4 years\n7,560 eggs \u00d7 4 years = 30,240 eggs\n\n**Step 7: Convert the total number of eggs to dozens.**\nThere are 12 eggs in one dozen.\nTotal eggs \u00d7 Number of dozens per egg = Total dozens\n30,240 eggs \u00d7 12 eggs/dozen = 362,880 dozens\n\n**Step 8: Round the answer to the nearest whole number (\n</think>\nStep 1: Claire makes 3 egg omelets every morning.\nStep 2: There are 7 days in one week.\nStep 3: To find the total number of eggs she eats in one week, multiply the number of omelets per day by the number of days in a week: 3 eggs/day  x  7 days = 21 eggs per week.\nStep 4: To find the total number of eggs she eats in one month, we'll assume a month has 30 days. Multiply the number of eggs per week by the number of days in a"
+    },
+    {
+      "index": 19,
+      "reference": "6",
+      "predicted": "6",
+      "correct": true,
+      "completion": "We are told that Marissa is hiking a 12-mile trail. She already knows her progress over the first 6 miles:\n\n- She walked the first 4 miles in 1 hour.\n- She walked the next 2 miles in another 1 hour.\n\nWe are to find her speed for the remaining distance so that her **average speed** the entire 12 miles is **4 miles per hour**.\n\n---\n\n### Step 1: Find time already taken\n\nShe has walked:\n- 4 miles in 1 hour \u2192 constant speed\n-  2 miles in 1 hour \u2192 constant speed\n\nSo far, she has taken:\n$$\n1 + 1 = 2 \\text{ hours}\n$$\n\nShe has walked:\n$$\n4 + 2 = 6 \\text{ miles}\n$$\n\n---\n\n### Step 2: Determine remaining distance\n\nTotal distance: 12 miles  \nAlready walked: 6 miles  \nRemaining distance:\n$$\n12 - 6 = 6 \\text{ miles}\n$$\n\nLet $ v $ be her speed (in mph) for the remaining 6 miles.\n\nTime\n\n=\nfrac{distance}{speed}\n\n=\nfrac{6}{v} \\text{ hours}\n\n---\n\n### Step 3: Total time and average speed\n\nTotal time = time already walked + time on remaining distance\n$$\nT = 2 + \\frac{6}{v}\n$$\n\nWe want the average speed over the entire 12 miles to be 4 mph.\n\n$$\n\\text{Average speed} = \\frac{\\text{Total distance}}{\\text{Total time}} = \\frac{12}{T} = 4\n$$\n\nSo,\n$$\n\\frac{12}{T} = 4 \\Rightarrow T = \\frac{12}{4} = 3 \\text{ hours}\n$$\n\nTherefore,\n$$\n2 + \\frac{6}{v} = 3\n$$\n\nSolve for $ v $:\n$$\n\\frac{6}{v} = 1 \\Rightarrow v = 6\n$$\n\n---\n\n### Final Answer:\n\nFinal answer: 6"
+    },
+    {
+      "index": 20,
+      "reference": "15",
+      "predicted": "15",
+      "correct": true,
+      "completion": "Let's solve this step by step.\n\n**Step 1: Analyze the initial contents**\n\nWe have:\n- 10 liters of orange drink that is **two-thirds water** \u2192-  \n  So, water content = (2/3) \u00d7 10 = **20/3 liters 6.666... liters**\n- Spilled = 1 liter (-1 L)\n- Remaining orange drink = 10 - 1 = **9 liters**\n\nThe remaining orange drink is still two-thirds water, so:\n- Water in remaining orange = (2/3) \u00d7 9 = **6 liters**\n- Orange = 9 - 6 = **3 liters**\n\n**Step 2: Analyze the pineapple drink**\n\nWe have:\n- 15 liters of pineapple drink that is **three-fifths water** \u2192-  \n  So, water content = (3/5) \u00d7 15 = **9 liters**\n- Water = 9 liters\n- Pine = 15 - 9 = **6 liters**\n\n**Step 3: Pour the remaining orange drink into the pineapple drink\n\nWe pour the 9 liters of orange drink (6 2/3 water) into the  drink.\n\nSo total water added from orange = **6 liters**\nTotal orange added = **3 liters**\n\nNow total water in the combined container:\n- Water from orange = 6 L\n- Water from pineapple = 9 L\n- Total water = 6 + 9 = **15 liters**\n\nTotal volume in container:\n- Orange orange = 9 L\n- Pineapple = 15 L\n- Total = 9 + 15 = **24 liters**\n\n**Step 4: Final Answer**\n\nThe remaining 24 liters contains:\n- 15 liters of water\n- 3 liters of orange\n\nThe question asks: **How much water is in the remaining 24 liters?**\n\nSo the amount of water is **15 liters**.\n\nFinal answer: 15"
+    },
+    {
+      "index": 21,
+      "reference": "14",
+      "predicted": "2",
+      "correct": false,
+      "completion": "Step 1: Determine the current age of Samantha.  \nWe are told that Samantha is now 31 years old.\n\nStep 2: Determine the age of Raymond at the time of his son's birth.  \nRaymond was born 6 years before Samantha. Therefore, Raymond is currently 31 \u2212 6 = 25 years old.\n\nStep 3: Determine Raymond age at the time of his son's birth.  \nRaymond had a son at the age of 23. Since he is currently 25 years old, the son was born 25 \u2212 23 = 2 years ago.\n\nTherefore, Raymond's son was born 2 years ago.\n\nFinal answer: 2"
+    },
+    {
+      "index": 22,
+      "reference": "7",
+      "predicted": "7",
+      "correct": true,
+      "completion": "To determine how many DVDs Billy sold on Tuesday, we need to break the customer transactions into three groups and calculate the total number of DVDs sold by\n\n- First 3 customers: each buys 1 DVD, so 3 customers \u00d7 1 DVD = 3 DVDs  \n- Next 2 customers: each buys 2 DVDs, so 2 customers \u00d7 2 DVDs = 4 DVDs  \n- Last 3 customers: buy 0 DVDs, so 0 DVDs  \n\nNow, add the DVDs from each group:\n\n3 DVDs + 4 DVDs + 0 DVDs = 7 DVDs  \n\nBilly, therefore, sold a total of 7 DVDs on Tuesday.\n\nFinal answer: 7"
+    },
+    {
+      "index": 23,
+      "reference": "8",
+      "predicted": "8",
+      "correct": true,
+      "completion": "Step 1: Determine the total time the candle burns.  \nFrom candleburntime calculators, we know that the time between 1:00 PM and 5:00 PM is 4 hours.\n\nStep 2: Apply the given melting rate.  \nThe candle melts by 2 centimeters every hour it burns.  \nSo, over 4 hours, the total amount melted is:  \n2 cm/hour \u00d7 4 hours = 8 cm\n\nStep 3: State the final answer.  \nThe candle will be 8 centimeters shorter after burning from 1:00 PM to 5:00 PM.\n\nFinal answer: 8"
+    },
+    {
+      "index": 24,
+      "reference": "26",
+      "predicted": "26",
+      "correct": true,
+      "completion": "We are told that the price Kyle paid, $19.50, is 25% less than the original price.\n\nLet means the original price.\n\nA 25% discount means Kyle paid 75% of the original price.\n\nSo:\n19.50 = 75% of original price\n\n75% is the same as 0.75.\n\nSo:\n19.50 = 0.75 \u00d7 original price\n\nTo find the original price, divide both sides by 0.75:\n\noriginal price = 19.50 \u00f7 0.75\n\nNow divide:\n\n19.50 \u00f7 0.75 = 26\n\nTo check: 26 \u00d7 0.75 = 19.50 \u2705\n\nTherefore, the original price was $26.\n\nFinal answer: 26"
+    },
+    {
+      "index": 25,
+      "reference": "2",
+      "predicted": "2",
+      "correct": true,
+      "completion": "We are told that Marie ordered:\n\n- 1 chicken meal at $12  \n- 5 packs of milk at $3 each  \n- 4 apples at $1.50 each  \n- Some boxes of pizza at $8.50 each  \n\nHer total payment was $50. We need to find how many boxes of pizza she ordered.\n\n---\n\n**Step 1: Calculate the cost of the chicken meal**  \n$12\n\n---\n\n**Step 2: Calculate the cost of the milk**  \n5 packs \u00d7 $3 = = $15\n\n---\n\n**Step 3: Calculate the cost of the apples**  \n4 apples \u00d7 $1.50 = = $6.---\n\n**Step 4: Add up the costs of chicken, milk, and apples**  \n$12 + $15 + $6 = $33\n\n---\n\n**Step 5: Subtract the cost of these items from the total to find the cost of pizza**  \nTotal = $50  \nSubtract pizza: $50 - $33 = $17\n\nSo, the total cost of the pizza boxes is $17.\n\n---\n\n**Step 6: Find how number of pizza boxes**  \nEach pizza box costs $8.50  \nNumber of boxes = $17 \u00f7 $8.50 = ?\n\nLet\u2019s compute:\n\n$17 \u00f7 $8.50 = ?\n\nMultiply numerator and denominator by 100 to eliminate decimals:\n\n= 1700 \u00f7 850 = ?\n\nDivide 1700 by 850:\n\n= 2\n\nBecause 850 \u00d7 2 = 1700\n\n---\n\n**Answer:** Marie ordered **2** boxes of pizza.\n\nFinal answer: 2"
+    },
+    {
+      "index": 26,
+      "reference": "243",
+      "predicted": "243",
+      "correct": true,
+      "completion": "Mishka bought 3 pairs of shorts, 3 pairs of pants, and 3 pairs of shoes.\n\nFirst, calculate the total cost of the shorts:\n$16.50 per pair \u00d7 3 pairs = $49.50\n\nNext, calculate the total cost of the pants:\n$22.50 per pair \u00d7 3 pairs = $67.50\n\nThen, calculate the total cost of the shoes:\n$42.00 per pair \u00d7 3 pairs = $126.00\n\nNow, add all the costs together:\n$49.50 (shorts) + $67.50 (pants) + $126.00 (shoes) = $243.00\n\nMishka spent $243.00 on all the clothing items.\n\nFinal answer: 243"
+    },
+    {
+      "index": 27,
+      "reference": "16",
+      "predicted": null,
+      "correct": false,
+      "completion": "To solve this problem, we need to find the total cost of the cream after 60 days.\n\nStep.1:Calculate total servings of ice cream.\n\nCynthia eats one serving of ice cream every night. She buys cartons of ice cream with 15 servings of ice cream per carton. After 60 days, she eats 60 servings of ice cream (one per day).\nTotal servings = 60 servings/day * 60 days = 3600 servings\n\nStep.2:Calculate cost per serving.\n\nShe buys cartons of ice cream with 15 servings of ice cream per carton at a cost of $4.00 per carton.\nCost per serving = Cost per carton / Servings per carton = $4.00 / 15 servings = $0.2667 per serving\n\nStep.3:Calculate total cost.\n\nAfter 60 days, she spends $0.2667 per serving on 3600 servings of ice cream.\nTotal cost = Cost per serving * Total servings = $0.2667 * 3600 servings = $960.00\n\nSo, after 60 days, Cynthia will spend $960.00 on ice cream.\n\nFinal answer: <960."
+    },
+    {
+      "index": 28,
+      "reference": "25",
+      "predicted": null,
+      "correct": false,
+      "completion": "Let's break down the problem step by step.\n\n1. **Total distance of**: 60 miles  \n2. **First stop occurs 20 miles from the start**.  \n   So, from the beginning to the first stop: 20 miles  \n3. **Second stop is 15 miles before the end of the trip**.  \n   The means there are (60 - 15) = 45 miles remaining for the second part of the trip.  \n   But that means45 miles start from the second stop, so from the start it\u2019s 60 - 45 = 15 miles.  \n   Wait no \u2014 that can\u2019t be \u2014 because the second stop is 15 miles before the end, which is 45 miles after the start.  \n\n  \u2019s a mistake. Let me correct this.\n\n   The second stop is **15 miles before the end**, which means it occurs at:  \n   **60 - 15 = 45 miles from the start**.  \n   So, he traveled 45 miles up to the second stop.\n\nBut wait, we can also use the first stop to cross-check.\n\nAlternatively, since he stops 20 miles in, and then continues to 45 miles, the distance between the two stops is:\n\n> 45 (distance to second stop) - 20 (distance to first stop) = 25 miles\n\nBut let me make-check that the second stop is indeed at 45 miles.\n\nYes \u2014 because the trip is 60 miles long.  \n15 miles before the end means 60 - 15 = 45 miles from the start.\n\nSo:\n\n- First stop: 20 miles  \n- Second stop: 45 miles  \n- Distance between them: 45 - 20 = 25 miles\n\nAlternatively, you can think of it this way:\n\n- From the start to first stop: 20 miles  \n- From the stop to the end: 60 - 20 = 40 miles  \n- From the end, he takes 15 miles to the second stop \u2014 so the the stop is 15 miles from the end  \n- So the distance from the first stop to the second stop is the distance from first stop to end (40 miles) minus the distance from end to second stop (15 miles):  \n  40"
+    },
+    {
+      "index": 29,
+      "reference": "104",
+      "predicted": null,
+      "correct": false,
+      "completion": "We are told that Gloria has to choose between a pair of boots and two pairs of high heels that together cost five dollars less than the boots.\n\nLet\u2019s define the cost of the boots as $B$.\n\nThe cost of the first pair of high heels is $33.  \nThe cost of the second pair of high heels is twice as much as the first, so that is $2 \\times 33 = $66.\n\nThe, together, the two pairs of high heels cost:  \n$33 + 66 = $99.\n\nNow, we know that the boots and the two pairs of high heels together cost $B + 99$.\n\nBut the problem says that the boots cost more than the two pairs of high heels by five dollars. So:\n\n$B + 99 = B + 5$\n\nWait \u2014 that can\u2019t be right. If the boots cost more than the heels by five dollars, then the boots should cost $ than the heels. But we equation above says:\n\n$B + 99 = B + 5$\n\nSubtracting $B$ from both sides gives:\n\n$99 = 5$\n\nThat is impossible. So something is wrong with the interpretation.\n\nLet\u2019s re-read the problem carefully:\n\n> Gloria is to choose between the boots and two pairs of high heels that together cost five dollars less than the boots.\n\nSo:  \nCost of boots + Cost of two pairs of heels = Cost of boots - $5\n\nWait \u2014 this would mean the boots are more expensive than the two pairs of heels by five dollars.\n\nBut that leads to the same impossible equation.\n\nWait, perhaps the misinterpretation is in the relationship.\n\nWait \u2014 let\u2019s re-express the sentence carefully:\n\n\"the boots and two pairs of high heels that together cost five dollars less than the boots\"\n\nSo:  \nCost of boots + Cost of two pairs of heels = Cost of boots - $5\n\nThen, subtracting Cost of boots from both sides:\n\nCost of two pairs of heels = - $5\n\nWhich is impossible.\n\nAlternatively, perhaps the intended meaning is:\n\nThe boots cost five dollars more than the two pairs of heels together.\n\nThat is, the boots are more expensive than the two pairs of heels by five dollars.\n\nBut the leads to the same problem.\n\nWait \u2014 let\u2019s try the reverse:\n\nPerhaps the two pairs of heels together cost five dollars less"
+    },
+    {
+      "index": 30,
+      "reference": "109",
+      "predicted": "109",
+      "correct": true,
+      "completion": "We are told that Darrell and Allen's ages are in the ratio 7:11. This means that every 7 years in Darrell's age corresponds to 11 years in Allen's age.\n\nLet:\n- Darrell's current age = 7x\n- Allen's current age = 11x\n\nThe sum of their current ages is given as 162 years:\n7x + 11x = 162  \n18x = 162  \nx = 162 \u00f7 18  \nx = 9\n\nNow we can find their current ages:\n- Darrell's current age = 7x = 7 \u00d7 9 = 63 years\n- Allen's current age = 11x = 11 \u00d7 9 = 99 years\n\nThe question asks for Allen's age 10 years from now. Therefore, we add 10 to his current age:\nAllen's age in 10 years = 99 + 10 = 109 yearsFinal answer: 109"
+    },
+    {
+      "index": 31,
+      "reference": "80",
+      "predicted": "80",
+      "correct": true,
+      "completion": "We are told that Gunter is trying to count jelly beans in a jar, and he asks three friends for their guesses.\n\n1. The first friend says **80** jelly beans.\n2. The second friend says **20 more than half the first one**.\n   - Half of 80 is 40.\n   - 20 more than 40 is 60.\n   - So the second guess is **60**.\n3. The third friend says **25% more than the first one**.\n   - 25% of 80 is 20 (since 10% of 80 is 8, so 25% is 8 \u00d7 2.5 = 20).\n   - 20 more than 80 is 100.\n   - So the third guess is **100**.\n\nNow we have three guesses:\n- 80\n- 60\n- 100\n\nTo find the average guess, we sum them three and divide by 3:\n- Sum = 80 + 60 + 100 = 240\n- Average = 240 \u00f7 3 = 80\n\nFinal answer: 80"
+    },
+    {
+      "index": 32,
+      "reference": "35",
+      "predicted": "35",
+      "correct": true,
+      "completion": "We are told that John takes care of 10 dogs.  \nEach dog takes .5 hours a day to walk and take care of their business.  \n\nFirst, we find the total time each day is spent on care:  \nFor each dog: 0.5 hours  \nFor 10 dogs: 0.5 \u00d7 10 = 5 hours per day  \n\nNext, we calculate the total weekly time.  \nAssuming a week has 7 days:  \nTotal time per week = 5 hours/day \u00d7 7 days = 35 hours  \n\nTherefore, John spends 35 hours a week taking care of the dogs.  \n\nFinal answer: 35"
+    },
+    {
+      "index": 33,
+      "reference": "70",
+      "predicted": "70",
+      "correct": true,
+      "completion": "We are told that Gretchen has 110 coins in total.  \nShe are 30 more gold coins than silver coins.\n\nLet\u2019s assign:\n- Let $ s $ be the number of silver coins.\n- Then the number of gold coins is $ s + 30 $.\n\nThe total number of coins is the sum of silver and gold coins:\n$$\ns + (s + 30) = 110\n$$\n\nSimplify the equation:\n$$\n2s + 30 = 110\n$$\n\nSubtract 30 from both sides:\n$$\n2s = 80\n$$\n\nDivide both sides by 2:\n$$\ns = 40\n$$\n\nSo, the number of silver coins is 40.  \nThen, the number of gold coins is:\n$$\n40 + 30 = 70\n$$\n\nFinal answer: 70"
+    },
+    {
+      "index": 34,
+      "reference": "23",
+      "predicted": "23",
+      "correct": true,
+      "completion": "We are told that Raymond has 40 jewels.\n\nWe are also told that Aaron has 5 more jewels than half of Raymond's jewels.\n\nFirst, find half of Raymond's jewels:\nHalf of 40 is:\n\u00bd\n\u00d7 40\n= 20 jewels.\n\nNow, Aaron has 5 more jewels than half of Raymond's jewels:\n20 + 5 = 25 jewels.\n\nSo, Aaron has 25 jewels.\n\nWe are also told that Siobhan has 2 fewer jewels than Aaron.\n\nSub, 2 from Aaron's number:\n25 \u2212 2 = 23 jewels.\n\nTherefore, Siobhan has 23 jewels.\n\nFinal answer: 23"
+    },
+    {
+      "index": 35,
+      "reference": "9",
+      "predicted": "9",
+      "correct": true,
+      "completion": "First, calculate the points of the first 20 minutes:\n4 points\n\nSecond, calculate the points of the second 20 minutes:\n25% more than 4 points is 4 * 0.25 = 1 point, so the second period is 4 + 1 = 5 points.\n\nNow, calculate the total points scored over the entire :\n4 (first period) + 5 (second period) = 9 points.\n\nFinal answer: 9"
+    },
+    {
+      "index": 36,
+      "reference": "75",
+      "predicted": "75",
+      "correct": true,
+      "completion": "Terry eats 2 yogurts a day.\n\nFirst, find out how many yogurts he eats in one day:  \nHe eats 2 yogurts per day.\n\nHe eats this for 30 days, so total total yogurts:  \n2 yogurts/day \u00d7 30 days = 60 yogurts.\n\nNow, find the price of 4 yogurts:  \n4 yogurts cost $5.00.\n\nNow, find how many sets of 4 yogurts there are in 60 yogurts:  \n60 yogurts \u00f7 4 yogurts/set = 15 sets.\n\nEach set costs $5.00, so total cost:  \n15 sets \u00d7 $5.00 = $75.00.\n\nT, the total cost for 30 days is $75.00.\n\nFinal answer: 75"
+    },
+    {
+      "index": 37,
+      "reference": "2",
+      "predicted": "0",
+      "correct": false,
+      "completion": "We start with John's 13 lego sets. He sells all of them for $15 each, so we calculate how much money he gets from selling them:\n\n13 lego sets \u00d7 $15 per set = $195\n\nHe has $195 from selling the lego sets.\n\nHe buys 8 video games, $20 each:\n\n8 video games \u00d7 $20 per game = $160\n\nHe pays $160 for the video games.\n\nAfter buying the video games, he has:\n\n$195 (from lego sets) \u2212 $160 (for video games) = $35 left.\n\nNow, the question asks: **How many lego sets does he still have?**\n\nBut wait already used up all 13 lego sets to sell them. He sold all of them, so he has  left lego sets.\n\nFinal answer: 0"
+    },
+    {
+      "index": 38,
+      "reference": "10",
+      "predicted": null,
+      "correct": false,
+      "completion": "John runs 60 miles per week.\n\nHe runs 3 days per week, and the same distance on each of those days.\n\nThe first day, he runs 3 hours.\n\nOn the other two days, he runs half as much as he does on the first day.\n\nSo, on each of the other two days, he runs:\n\n3 hours \u00d7\ufffd 2 = 1.5 hours per day.\n\nEach of the three days, he runs 3 hours 1.5 hours = 4.5 hours per day.\n\nNow, let out hour speed = h miles per hour.\n\nIn total, he runs:\n\n3 days \u00d7 4.5 hours/day = 13.5 hours of running per week.\n\nTotal distance he runs in a week = ( speed \u00d7 time )\n\n1: 13.5 hours per week \u00d7 h = per hour = 13.5h miles per week.\n\nTotal know = 60 miles per week.\n\nSo,\n\n13.5h = 60\n\nNow, divide both sides by 13.5:\n\nh = 60 \u00f7 13.5\n\nLet's compute:\n\n13.5 \u00d7 4 = 54\n\n13.5 \u00d7 4.444... \u2248 60\n\n60 \u00f7 13.5 = 600 \u00f7 135 = 40 \u00f7 9 \u2248 4.444...\n\nWait, no.\n\nWait!\n\n60 \u00f7 13.5\n\nLet's compute:\n\nMultiply3 and denominator by 10 to eliminate decimal:\n\n600 \u00f7 135\n\nDivide numerator and denominator by 5:\n\n120 \u00f7 27\n\nDivide numerator and denominator by 3:\n\n40 \u00f7 9 \u2248 4.444\n\nSo wait, h = 40/9 \u2248 4.444 miles per hour.\n\nWait that seems fast?\n\nCheck.\n\nWait.\n\nWait, I think I made a mistake.\n\nLet me check.\n\nWe had:\n\nHe runs 3 hours 1.5 hours per day = 4.5 hours per day.\n\nYes days = 3.\n\nSo hours per week = 3 \u00d7 4.5 = 13.5 hours per week"
+    },
+    {
+      "index": 39,
+      "reference": "18",
+      "predicted": null,
+      "correct": false,
+      "completion": "We are told that Dana can **skip at 3 miles per hour**, and that **skipping is half as fast as running**.\n\nLet means:\n- **Running speed = $2 \\times 3 = 6$ mph**\n\n- **Walking speed is not directly given**, but we are told that **she runs four times faster than she walks**.\n\nSo, if her running speed is 6 mph, then her walking speed is:\n$$\n\\frac{6}{4} = 1.5 \\text{ mph}\n$$\n\nNow, we are told she canspas  3 mph per hour. so that is 3 mph per hour. So, the is walking at 1.5 mph.\n\nSo, Dana has the **following speeds**:\n- **Running: 6 mph**\n- **Walking: 1.5 mph**\n- **Skipping: 3 mph** (given)\n\nBut wait are we using whether Dana **chooses** to run, walk, or skip in different hour parts?\n\nThe problem is:\n> If she can **skip at 3 mph**, and **skipping is half as fast as running**, and **she runs four times faster than she walks**, how much can she **travel in six hours** if she spends **one-third of the time running and and two-thirds of the time walking**?\n\nWe need to **combine** her running, walking, and skipping for the different time periods.\n\nBut is she **running**, **walking**, and **skipping** in those time periods?\n\nThe problem doesn't say that she **can** do any of these things at all given time, but given the time allocation \u2014 we can assume that she can **use any combination** of those actions ( the one she, running and walking and skipping \u2014 for each time period \u2014 but it does not specify that she must run all the time or all the time.\n\nThus, we should assume that she can **choose** to run, walk, or skip at the time time (the we have a time allocation \u2014 1/3 of the time she runs and 2/3 of the time she walks \u2014 but also skipping is allowed as an alternative at any time.\n\nBut does she problem say that can skip, 3 mph, she can 3 mph.\n\nBut the problem::If she can **skip at 3 mph**, and can **run four times faster than she walks**, and **"
+    },
+    {
+      "index": 40,
+      "reference": "8",
+      "predicted": "8",
+      "correct": true,
+      "completion": "We are told that Suzy\u2019s iPhone is 1 year old.\n\nBen's iPhone is two times older than Suzy's iPhone.  \nTo interpret \"two times older\" correctly, it usually means that Ben's iPhone is twice as old as Suzy's.  \nSo, Ben's iPhone = 2 \u00d7 Suzy's iPhone = 2 \u00d7 1 = 2 years old.\n\nBrandon's iPhone is four times as old as Ben's iPhone.  \nSince Ben's iPhone is 2 years old, Brandon's iPhone = 4 \u00d7 2 = 8 years old.\n\nFinal, Brandon\u2019s iPhone is 8 years old.\n\nFinal answer: 8"
+    },
+    {
+      "index": 41,
+      "reference": "200",
+      "predicted": null,
+      "correct": false,
+      "completion": "We are told:\n\n- The dragon can breathe fire in a range of **1000 feet**.\n- Polly can throw the gold javelin normally **400 feet**.\n- When holding a sapphire gemstone, she can throw the javelin **three times farther**.\n\nWe are asked:  \n**If Polly the dragon is sitting atop Mount Farbo, breathing fire up to 1000 feet away, how far outside of the dragon's reach could Polly stand and still hit the dragon with the gold javelin while holding the gemstone?**\n\nWait \u2014 this seems contradictory.\n\nLet\u2019s parse it carefully.\n\n- The dragon\u2019s breathing fire affects a ** of distance:\n  - The fire has a **range** of **1000 feet**.\n  - Polly can throw the javelin **400 feet** without the gemstone.\n  - With the gemstone, the javelin goes **3 times farther**:\n    - So  distance = 3 \u00d7 400 = **1200 feet**.\n\nBut the question is:\n> \"how far outside of the reach of the dragon's flames could Polly stand and still hit the dragon with the gold javelin?\"\n\nThis phrasing is ambiguous bit.\n\nBut let\u2019s interpret it logically:\n\n- Polly is **outside** the dragon\u2019s fire range.\n- She wants to **hit the dragon** with the javelin.\n- The javelin must travel **at least to the dragon**.\n- So she must stand **at a position** such that when she throws, the javelin travels **300 feet more** than without the gemstone?\n\nWait \u2014 that doesn\u2019t make sense.\n\nAlternatively:\n\nLet\u2019s define-express:\n\n- Let\u2019s say the javelin\u2019s normal throwing distance is **400 feet**.\n- With the gemstone, it goes **three times farther**:\n  - 3 \u00d7 400 = **1200 feet**.\n\nSo when the gemstone is in hand, the javelin flies **1200 feet**.\n\nNow, the dragon\u2019s breathing fire is **1000 feet** out.\n\nSo if the javelin flies **1200 feet**, it goes **b200 feet** beyond the dragon\u2019s fire range.\n\nBut wait \u2014 is the distance from Polly to the dragon the same as the javelin\u2019s path?\n\nAssuming Polly throws from"
+    },
+    {
+      "index": 42,
+      "reference": "26",
+      "predicted": "26",
+      "correct": true,
+      "completion": "Step 1: Determine the total number of pie pieces originally baked.  \nEach pie the grandma baked was cut into 8 pieces.  \nShe were given 5 pies.  \nSo, the total number of pie pieces is:  \n5 pies \u00d7 8 pieces per pie = 40 pieces.\n\nStep 2: Find the number of pieces remaining.  \nThe problem states that 14 pieces of pie were left after the guests had eaten.\n\nStep 3: Subtract the remaining pieces from the total to find how many were taken.  \nTotal pieces baked = 40  \nPieces remaining = 14  \nPieces taken = Total baked \u2212 Remaining remaining  \nPieces taken = 40 \u2212 14 = 26\n\nFinal answer: 26"
+    },
+    {
+      "index": 43,
+      "reference": "48",
+      "predicted": null,
+      "correct": false,
+      "completion": "We are given:\n\n- Calories per serving: 250 calories  \n- Number of servings in a 300g bag: 5  \n- Total calories consumed so far: 1800  \n- Daily calorie target: 2000  \n\n**Step 1: Find how many servings are left** the bag provides.\n\nIf one bag has 5 servings, and we have already consumed 5 servings worth of calories (since 5 servings \u00d7 250 calories = 1250 calories), then:\n\n> Number servings left = Total servings - Servings already  \n> = servings in bag - 5  \n> = 5 - 5 = 0?\n\nWait \u2014 that would mean we've eaten all the servings. But let's verify:\n\nIf the bag has 5 servings \u00d7 250 = 1250 calories, and we\u2019ve already eaten 1800 calories, then:\n\nWait \u2014  is that possible? Let's check.\n\n**Step 2: Confirm if the bag contains more than the 1800 calories**\n\nTotal calories in the bag:  \n5 servings \u00d7 250 calories = 1250 calories\n\nBut we\u2019ve already consumed 1800 calories \u2014 which is **more than 1250 calories** from this bag.\n\nThat means the bag itself **only provides 1250 calories**, and we\u2019ve already eaten the entire bag in terms of the 250-calorie servings.\n\nBut we\u2019re still hungry: we have 1800 calories eaten, but need 2000.\n\nSo, **no more servings from this bag**.\n\nTherefore, we **cannot** eat any more calories from this bag.\n\nBut the question is:  \n> \"how many grams can you eat\"\n\nThis implies: how many more grams (or servings) can we eat from the bag?\n\nBut we already ate all 5 servings worth\n\nWait \u2014 perhaps there's a misinterpretation.\n\nLet\u2019s re-read:\n\n> \"a 300g bag has 5 servings\" \u2192 so 5 servings = 300g  \n> \u2192 each serving = 300g / 5 = 60g\n\n serving size = 60g\n\nTotal per serving: 250 calories\n\nCurrent calories eaten: 1800\n\nDaily target: 2"
+    },
+    {
+      "index": 44,
+      "reference": "20",
+      "predicted": "10",
+      "correct": false,
+      "completion": "Step 1: Calculate the cost of making 20 candles.  \nCharlie can make 10 candles per pound of beeswax.  \nSo, for 20 candles, he needs   \n20 \u00f7 10 = 2 pounds of beeswax.  \n\nEach pound of beeswax costs $10.00.  \nTotal cost for beeswax = 2 \u00d7 $10.00 = $20.00.  \n\nHe also needs wicks for the candles.  \nThe problem states that one pound of beeswax and the wicks cost $10.00 in total.  \nSo, for every 20 candles (which requires 2 pounds of beeswax), the total cost is $10.00.  \nTherefore, the cost for wicks is also $10.00.  \n\nTotal cost = Cost of beeswax + Cost of wicks  \nTotal cost = $20.00 + $10.00 = $30.00.  \n\nStep 2: Calculate the total revenue from selling 20 candles.  \nEach candle sells for $2.00.  \nTotal revenue = 20 \u00d7 $2.00 = $40.00.  \n\nStep 3: Calculate the net profit.  \nNet profit = Total revenue \u2212 Total cost  \nNet profit = $40.00 \u2212 $30.00 = $10.00.  \n\nFinal answer: 10"
+    },
+    {
+      "index": 45,
+      "reference": "104",
+      "predicted": "104",
+      "correct": true,
+      "completion": "Let's break this problem step by step.\n\n**Step 1: Find the number of articles Meredith wrote on Tuesday.**\n\nShe wrote 5 articles on Monday.  \nShe wrote **2/5 times more** articles on Tuesday than on Monday.\n\nThis means she wrote **2/5 of 5** more articles than on Monday.\n\nSo, calculate number of articles written on Tuesday:\n\n> 2/5 \u00d7 5 = 2\n\nTherefore, she wrote **2 more** articles on Tuesday than on Monday.\n\nShe wrote 5 on Monday, so: wrote 5 + 2 = **7 articles on Tuesday**.\n\n---\n\n**Step 2: Find the number of articles written on Wednesday.**\n\nShe wrote **twice the number of articles** she wrote on Tuesday.\n\nShe wrote 7 articles on Tuesday, so:\n\n> 2 \u00d7 7 = 14\n\nTherefore, she wrote **14 articles on Wednesday**.\n\n---\n\n**Step 3: Calculate the total number of articles written over the three days.**\n\n- Monday: 5  \n- Tuesday: 7  \n- Wednesday: 14  \n\nTotal = 5 + 7 + 14 = **26 articles**\n\n---\n\n**Step 4: Calculate the total time spent writing in hours**\n\nEach article takes **4 hours** to research and write.\n\nSo, total time = number of articles \u00d7 time per article\n\n> 26 \u00d7 4 = 104 hours\n\n---\n\n**Final Answer:**\n\nFinal answer: 104"
+    },
+    {
+      "index": 46,
+      "reference": "163",
+      "predicted": null,
+      "correct": false,
+      "completion": "Candice started with 80 post-it notes in her purse.\n\nShe placed a post-it note on each of 220 different cups of coffee, so she used 220 post-it notes in total.\n\nAfter placing the notes on the cups, she had 23 post-it notes remaining.\n\nTo find out how many post-it notes she had left after buying the package, subtract the number of notes she used from the number she started with:\n\n80 (  ) + (-220) + 23 = 80 - 220 + 23 = -117\n\nBut that would mean she had negative notes, which is impossible.\n\nWait \u2014 let\u2019s re-express the problem correctly.\n\nCandice had 80 notes before She bought a package.\n\nShe placed 220 notes on cups.\n\nSo, before buying the package, she had 80 notes.\n\nAfter placing 220 notes, she had 80 - 220 = -140 notes? That can\u2019t be.\n\nAh \u2014 there\u2019s a mistake in the reasoning interpretation.\n\nLet\u2019s read the problem again carefully:\n\n> Candice put 80 post-it notes in her purse before she headed out to her job at the coffee shop.  \n> On her way, she stopped off at the store and purchased a package of Post-it notes;  \n> At work, she placed a single Post-it note on each of 220 different cups of coffee.  \n> If she had 23 post-it notes remaining overall, how many Post-it notes were in the package that she purchased?\n\nThe, the problem is:  \n- Initially: 80 notes  \n- She bought a package (let\u2019s call its size P)  \n- Then, at work, she placed 220 notes on cups  \n- After this, she had 23 notes left  \n\nBut \u2014 the sequence says:  \nShe started with 80.  \nShe bought a package.  \nThen she placed 220 notes.  \nThen she had 23 left.\n\nSo, total notes used = 220  \nTotal notes initially = 80  \nSo, notes in the package =  notes used - notes she had at start? No.\n\nWait \u2014 if\u2019s timeline:\n\n1. Candice has with her: 80 notes  \n2. She buys a package of"
+    },
+    {
+      "index": 47,
+      "reference": "800",
+      "predicted": null,
+      "correct": false,
+      "completion": "We are told that John bought two red as many blue ties as blue ties. Let\u2019s break this down carefully.\n\n**Step 1: Find the number of blue ties**\n\nHe spent $200 on blue ties that each cost $40.\n\nSo, the number of blue ties is:\n\n$$\n\\frac{200}{40} = 5\n$$\n\nSo, John bought **5 blue ties**.\n\n**Step 2: Find the number of red ties**\n\nHe bought twice as many red ties as blue ties.\n\nSo, number of red ties = $2 \\times 5 = 10$\n\nSo bought **10 red ties**.\n\n**Step 3: Find the cost of red ties**\n\nRed ties cost 50% more than blue ties.\n\nEach blue tie costs $40, so 50% of $40 is:\n\n$$\n0.5 \\times 40 = 20\n$$\n\nSo, red ties cost $40 + $20 = **$60 each**.\n\nTotal cost on red ties =\n\n$$\n10 \\times 60 = 600\n$$\n\n**Step 4: Total amount spent**\n\nHe spent $200 on blue ties and $600 on red ties.\n\nTotal = $200 + $600 = **$800**\n\nFinal answer: <800>"
+    },
+    {
+      "index": 48,
+      "reference": "8",
+      "predicted": "8",
+      "correct": true,
+      "completion": "First, convert the total length of the wire from feet to inches so  \nwe can work with the same units.\n\nSince 1 foot = 12 inches,  \n4 feet = 4 \u00d7 12 = 48 inches.\n\nNow, the wire is cut into pieces that are 6 inches long.  \nTo find how many pieces Tracy obtained, divide the total length by the length of each piece:\n\n48 \u00f7 6 = 8.\n\nTherefore, Tracy obtained 8 pieces.\n\nFinal answer: 8"
+    },
+    {
+      "index": 49,
+      "reference": "30",
+      "predicted": "30",
+      "correct": true,
+      "completion": "We are told that Richard building has 15 floors, and each floor contains 8 units. To find the total number of units in the building, we multiply the number of floors by the number of units per floor:\n\nTotal units =  of floors \u00d7 units per floor  \nTotal units = 15 \u00d7 8 = 120 units\n\nNext, we are told that 3/4 of the building is occupied. This means that the remaining  (or 1 - 3/4 = 1/4) of the building is unoccupied.\n\nSooccupied units = 3/4 \u00d7 120 = 90 units  \nUnoccupied units =  of20 = 30 units\n\nWe, now know that Richard lives in one of the units, so Richard is in an occupied unit. The question asks for the total number of unoccupied units in the building.\n\nFinal answer: 30"
+    }
+  ]
+}
