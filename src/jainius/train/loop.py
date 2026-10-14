@@ -22,12 +22,16 @@ from dataclasses import dataclass, field
 
 import torch
 
-from jainius.decode.rollout import rollout
+from jainius.decode.rollout import rollout, rollout_shifted
 from jainius.decode.sampler import SamplerSpec
 from jainius.distill.curriculum import rollout_length
 from jainius.distill.loss import kl_teacher_to_student
-from jainius.distill.targets import compute_teacher_targets
+from jainius.distill.targets import (
+    compute_teacher_targets,
+    compute_teacher_targets_shifted,
+)
 from jainius.model.arch import LegacyLeakyError, TwoStreamBatch
+from jainius.model.twostream import shifted_supervision_mask
 from jainius.train.master import MasterOptimizer
 
 # Jeu SYNTHÉTIQUE déterministe (câblage uniquement — pas une évaluation).
@@ -302,6 +306,222 @@ def run_smoke(student, teacher, tokenizer, cfg: SmokeConfig, ckpt_dir) -> dict:
                                   "teacher_fw": rep["teacher_fw"],
                                   "rollout_fw": rep["rollout_fw"]}})
             saved["params_fp"] = param_fingerprint(student.model)
+    rep["saved"] = {k: (str(v) if not isinstance(v, str) else v)
+                    for k, v in saved.items() if k == "dir"}
+    rep["saved_fp"] = saved.get("params_fp", "")
+    return rep
+
+
+def train_step_shifted(hf_model, teacher, optim, prompt_ids_list, trajs,
+                       stats: dict | None = None, *, runner, block_size: int,
+                       mask_id: int) -> float:
+    """Un pas J3 : KL(enseignant ‖ étudiant) sous convention `shifted`.
+
+    Pour chaque trajectoire Diffusion-Trust (`rollout_shifted`) : x0 =
+    prompt + réponse terminale ; xt = x0 avec MASK aux positions
+    supervisées (graines propres, queue < Bb propre et ignorée) ;
+    `runner.forward_train_shifted` (GDN mode 2, graine causale, graphe
+    intact) ; règle J2 des deux côtés — la position supervisée *i*
+    (offset m>=1 du bloc) se prédit depuis la ligne *m-1* du bloc
+    bruité, enseignant non décalé consommé au même indice (graines
+    exclues, `compute_teacher_targets_shifted`).
+
+    `runner` explicite exigé (aucune voie historique sous `shifted`).
+    Enseignant gelé (vérifié : aucun gradient côté enseignant — ses
+    forwards sont sous `no_grad`). Clipping de norme 1.0 avant le pas ;
+    norme pré-clip journalisée dans `stats["grad_norm"]` si fourni.
+    Les trajectoires sans bloc complet sont ignorées (documenté) ; si
+    aucune n'est supervisable, lève.
+    """
+    Bb = int(block_size)
+    if Bb < 2:
+        raise ValueError(f"bloc shifted : Bb={Bb} < 2 (graine + masques)")
+    if runner is None:
+        raise ValueError("train_step_shifted exige runner=TwoStreamRunner")
+    device = next(hf_model.parameters()).device
+    optim.zero_grad()
+    losses = []
+    n_sup_total = 0
+    for pids, traj in zip(prompt_ids_list, trajs):
+        P = len(pids)
+        R = len(traj.x0)
+        L = P + R
+        x0 = torch.tensor([pids + traj.x0], dtype=torch.long, device=device)
+        sup1d = shifted_supervision_mask(L, P, Bb)
+        nb = int((sup1d.sum().item()) // (Bb - 1)) if R else 0
+        if nb == 0:
+            continue  # queue seule / réponse vide : rien à superviser
+        xt = x0.clone()
+        xt[0][sup1d.to(device)] = mask_id
+        _, h_noisy, starts = runner.forward_train_shifted(
+            x0, xt, block_size=Bb, resp_start=P)
+        assert len(starts) == nb, (len(starts), nb)
+        # Vues compactes par bloc : rangs [0, Bb) ; supervisés : m>=1.
+        h_comp = h_noisy.reshape(1, nb * Bb, -1)
+        sup_comp = torch.zeros(1, nb * Bb, dtype=torch.bool, device=device)
+        for k in range(nb):
+            # Rang graine (offset 0) jamais supervisé (règle J2).
+            sup_comp[0, k * Bb + 1: (k + 1) * Bb] = True
+        with torch.no_grad():
+            t_full = compute_teacher_targets_shifted(
+                x0,
+                lambda ids: teacher.model(
+                    ids, output_hidden_states=True).hidden_states[-1],
+                teacher.model.lm_head,
+            )  # [1, L, V] log-probs NON décalées
+        t_comp = torch.zeros(1, nb * Bb, t_full.shape[-1],
+                             dtype=t_full.dtype, device=device)
+        for k, s in enumerate(starts):
+            t_comp[0, k * Bb: (k + 1) * Bb] = t_full[0, s: s + Bb]
+        out = kl_teacher_to_student(
+            runner.final_norm(h_comp), lambda h: runner.lm_head(h),
+            None, None, sup_comp, chunk_tokens=1024,
+            teacher_logits=t_comp.reshape(-1, t_comp.shape[-1]),
+        )
+        assert out.n_supervised == nb * (Bb - 1), (
+            out.n_supervised, nb, Bb)
+        n_sup_total += out.n_supervised
+        losses.append(out.loss)
+    if not losses:
+        raise ValueError("aucune trajectoire supervisable (que des queues)")
+    loss = torch.stack(losses).mean()
+    assert torch.isfinite(loss).all(), "perte non finie"
+    loss.backward()
+    assert all(
+        p.grad is None or bool(torch.isfinite(p.grad).all())
+        for p in hf_model.parameters()
+    ), "gradients non finis"
+    # Contrat enseignant gelé : aucun gradient côté enseignant.
+    assert all(
+        p.grad is None
+        for p in teacher.model.parameters()
+    ), "l'enseignant a reçu des gradients (contrat gelé violé)"
+    params = [p for p in hf_model.parameters() if p.grad is not None]
+    assert params, "aucun gradient côté étudiant"
+    grad_norm = float(torch.nn.utils.clip_grad_norm_(params, 1.0).item())
+    if stats is not None:
+        stats["grad_norm"] = grad_norm
+        stats["n_supervised"] = n_sup_total
+    optim.step()
+    return float(loss.item())
+
+
+@dataclass
+class DistillConfig:
+    """Boucle J3 : distillation on-policy Diffusion-Trust `shifted`."""
+
+    n_prompts: int = 4
+    max_steps: int = 3
+    l_max: int = 64
+    l_min: int = 8
+    warmup_rollouts: int = 10
+    block_size: int = 4  # Bb runtime ([graine, MASK×(Bb-1)])
+    steps_per_block: int = 2
+    sampler_mode: str = "static"  # "static" (1 jeton/pas) | "dynamic" (seuil)
+    threshold: float = 0.95  # mode dynamic (défaut = seuil serving)
+    temperature: float = 0.0
+    seed: int = 0
+    mask_token_id: int = 248077  # défaut DiffusionSpec (Qwen3.5)
+    lr: float = 1e-3  # câblage observable (cf. SmokeConfig.lr) ; le pilote
+    # utilisera 1e-5 + maîtres + accumulation.
+
+
+def run_distill_loop(hf_model, teacher, tokenizer, runner, cfg: DistillConfig,
+                     ckpt_dir) -> dict:
+    """Boucle J3 complète : curriculum → rollouts Diffusion-Trust de
+    l'étudiant → KL shifted → checkpoint/reprise. Prompts synthétiques
+    (câblage, pas un corpus). Lève si incohérent."""
+    from jainius.train.checkpoint import save_ckpt
+
+    Bb = int(cfg.block_size)
+    mask_id = int(cfg.mask_token_id)
+    assert len(SYNTHETIC_PROMPTS) >= cfg.n_prompts
+    prompts = SYNTHETIC_PROMPTS[: cfg.n_prompts]
+    prompt_ids_list = []
+    for text in prompts:
+        chat = tokenizer.apply_chat_template(
+            [{"role": "user", "content": text}],
+            tokenize=False,
+            add_generation_prompt=True,
+            enable_thinking=False,
+        )
+        prompt_ids_list.append(
+            tokenizer(chat, return_tensors="pt")["input_ids"][0].tolist()
+        )
+    assert teacher.is_frozen()
+    optim = MasterOptimizer(hf_model, lr=cfg.lr)
+    hf_model.train()
+    rep = {
+        "lengths": [], "losses": [], "grad_norms": [], "n_supervised": [],
+        "params_fp": [], "rollout_fw": 0, "student_train_fw": 0,
+        "teacher_fw": 0, "updates": 0, "prompts_per_step": [],
+        "gpu_seconds": {}, "convention": "shifted",
+        "block_size": Bb,
+    }
+    saved = {}
+    for step in range(cfg.max_steps):
+        length = rollout_length(
+            step, l_min=cfg.l_min, l_max=cfg.l_max,
+            warmup_rollouts=cfg.warmup_rollouts, block_size=Bb,
+        )
+        rep["lengths"].append(length)
+        t0 = time.time()
+        spec = SamplerSpec(mode=cfg.sampler_mode, threshold=cfg.threshold,
+                           temperature=cfg.temperature,
+                           steps_per_block=cfg.steps_per_block,
+                           seed=cfg.seed + step)
+        round_fp = param_fingerprint(hf_model)
+        trajs = [
+            rollout_shifted(runner, pids, length, spec,
+                            block_size=Bb, mask_id=mask_id)
+            for pids in prompt_ids_list
+        ]
+        for t in trajs:
+            t.weight_version = round_fp
+        rep["rollout_fw"] += sum(t.n_forwards for t in trajs)
+        assert len(trajs) == cfg.n_prompts
+        assert all(len(t.x0) == length for t in trajs), (
+            "rollout shifted exact (pas d'EOS sans eos_id) : "
+            f"{[len(t.x0) for t in trajs]}")
+        with torch.no_grad():
+            replay = rollout_shifted(runner, prompt_ids_list[0], length,
+                                     spec, block_size=Bb, mask_id=mask_id)
+        assert replay.x0 == trajs[0].x0, "fuite d'état entre rollouts"
+        rep["rollout_fw"] += replay.n_forwards
+        rep["gpu_seconds"][f"rollout_{step}"] = round(time.time() - t0, 2)
+        t0 = time.time()
+        fp_before = param_fingerprint(hf_model)
+        step_stats: dict = {}
+        loss_value = train_step_shifted(
+            hf_model, teacher, optim, prompt_ids_list, trajs,
+            stats=step_stats, runner=runner, block_size=Bb, mask_id=mask_id)
+        rep["student_train_fw"] += len(prompt_ids_list)
+        rep["teacher_fw"] += len(prompt_ids_list)
+        assert step_stats["grad_norm"] == step_stats["grad_norm"]  # fini
+        rep["grad_norms"].append(step_stats["grad_norm"])
+        rep["n_supervised"].append(step_stats["n_supervised"])
+        rep["updates"] += 1
+        rep["losses"].append(loss_value)
+        changed = param_fingerprint(hf_model) != fp_before
+        assert changed, f"aucune mise à jour au pas {step}"
+        rep["params_fp"].append(param_fingerprint(hf_model))
+        rep["prompts_per_step"].append(cfg.n_prompts)
+        rep["gpu_seconds"][f"train_{step}"] = round(time.time() - t0, 2)
+        if step == 1:
+            rng_cuda = (torch.cuda.get_rng_state_all()
+                        if torch.cuda.is_available() else None)
+            saved["dir"] = save_ckpt(
+                ckpt_dir, hf_model, optim.optim, torch.get_rng_state(),
+                step, {"distill": True, "shifted": True, "seed": cfg.seed,
+                       "lr": cfg.lr, "block_size": Bb},
+                masters=optim.masters, rng_cuda=rng_cuda,
+                extra={"curriculum_step": step, "length": length,
+                       "updates": rep["updates"],
+                       "budget": {"prompts": sum(rep["prompts_per_step"]),
+                                  "student_train_fw": rep["student_train_fw"],
+                                  "teacher_fw": rep["teacher_fw"],
+                                  "rollout_fw": rep["rollout_fw"]}})
+            saved["params_fp"] = param_fingerprint(hf_model)
     rep["saved"] = {k: (str(v) if not isinstance(v, str) else v)
                     for k, v in saved.items() if k == "dir"}
     rep["saved_fp"] = saved.get("params_fp", "")

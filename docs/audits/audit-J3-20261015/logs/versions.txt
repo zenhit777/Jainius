@@ -1,0 +1,2 @@
+﻿torch 2.11.0+cu128 cuda True
+transformers 5.17.0

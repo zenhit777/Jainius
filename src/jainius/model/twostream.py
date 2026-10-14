@@ -60,6 +60,30 @@ def runner_state_fingerprint(state: RunnerState) -> str:
     return digest.hexdigest()
 
 
+def shifted_supervision_mask(length, resp_start, block_size):
+    """Masque de supervision `shifted` 1D [L] (pur, testable sans GPU).
+
+    Réponse découpée en blocs runtime `[graine, MASK×(Bb-1)]` alignés sur
+    `resp_start` ; la graine (position 0 de chaque bloc) n'est jamais
+    supervisée (règle J2) ; la     queue non multiple de Bb est ignorée
+    (non supervisée). Le prompt `[0, resp_start)` n'est jamais supervisé.
+    Exige `resp_start >= 1` (la graine du premier bloc est le dernier
+    jeton du prompt) et `block_size >= 2`.
+    """
+    Bb = int(block_size)
+    rs = int(resp_start)
+    if Bb < 2:
+        raise ValueError(f"bloc shifted : Bb={Bb} < 2 (graine + masques)")
+    if rs < 1:
+        raise ValueError(f"shifted exige resp_start >= 1 (graine), reçu {rs}")
+    sup = torch.zeros(length, dtype=torch.bool)
+    nb = (length - rs) // Bb if length > rs else 0
+    for j in range(nb):
+        s = rs + j * Bb
+        sup[s + 1: s + Bb] = True
+    return sup
+
+
 class TwoStreamRunner:
     """Chemin de référence planifié autour d'un checkpoint HF chargé."""
 
@@ -669,6 +693,148 @@ class TwoStreamRunner:
                     C_init = torch.where(cut_c, torch.zeros_like(C_init),
                                          C_init)
                 out, _ = cell.forward_noisy_block(hn, S_init, C_init)
+                h = h + out
+                gi += 1
+            h = h + mod.mlp(mod.post_attention_layernorm(h))
+        return h
+
+    def forward_train_shifted(self, x0, xt, block_size, doc_ids=None,
+                              resp_start=None):
+        """Two-stream `shifted` (J3) : layout serving `[graine, MASK×(Bb-1)]`.
+
+        Miroir d'entraînement du rollout Diffusion-Trust natif
+        (`low_confidence_shift_hybrid_diffusion.py` de l'oracle) : chaque
+        bloc réponse `[s, e)` (Bb positions, aligné sur `resp_start`) est
+        débruité tel quel (graine propre en tête + masques),
+        GDN mode 2 (`num_clean=1`, la graine), masque graine-causale,
+        SANS écriture. Le propre couvre toute la séquence en UN passage
+        progressif (snapshots après `[0, s)`, O(L)).
+
+        Conventions : `xt` porte la graine propre (`xt[s-1] == x0[s-1]`)
+        et des masques aux positions supervisées ; la queue non multiple
+        de Bb est ignorée (zéros côté propre, aucun bloc). `resp_start`
+        >= 1 exigé (graine). Blocs mono-document (même contrat que
+        `forward_train`, vérifié sur `[s, e)`).
+
+        Reste dans le graphe autograd (aucun `detach`/`no_grad` côté
+        étudiant ; snapshots par réassignation, jamais mutés).
+
+        Retourne `(h_x0 [B, L, D] BRUT, h_noisy [B, nb, Bb, D] BRUT,
+        starts [nb])` : `h_noisy[j, m]` est le hidden source du jeton en
+        position `starts[j]+m` — la position supervisée `i` (offset m>=1)
+        se prédit depuis la ligne `m-1` (règle J2 `i-1`).
+        """
+        Bb = int(block_size)
+        if Bb < 2:
+            raise ValueError(
+                f"bloc shifted : Bb={Bb} < 2 (graine + masques)")
+        B, L = x0.shape
+        dev = x0.device
+        doc = (torch.zeros(B, L, dtype=torch.long, device=dev)
+               if doc_ids is None else doc_ids)
+        rs = 0 if resp_start is None else int(resp_start)
+        if rs < 1:
+            raise ValueError(
+                f"shifted exige resp_start >= 1 (graine), reçu {rs}")
+        nb = (L - rs) // Bb if L > rs else 0
+        h_emb_x0 = self.embed(x0)
+        h_emb_xt = self.embed(xt)
+        # --- propre progressif : préfixe [0, rs), puis extension ---
+        g_cur, kv_cur = self.fresh_states(B, dev)
+        h_x0 = torch.zeros_like(h_emb_x0)
+        cur = 0
+        if rs > 0:
+            seg = slice(0, rs)
+            pos = self._doc_positions(doc[:, seg])
+            h_seg, g_cur, kv_cur = self._clean_layers(
+                h_emb_x0[:, seg], pos, g_cur, kv_cur, doc[:, seg],
+                reset_rows=None)
+            h_x0[:, seg] = h_seg
+            cur = rs
+        h_noisy, starts = [], []
+        for j in range(nb):
+            s = rs + j * Bb
+            e = s + Bb
+            assert bool(((doc[:, s:e] == doc[:, s:s + 1]).all())), (
+                "bloc à cheval sur deux documents (hors contrat M1)")
+            snap_g, snap_kv = g_cur, kv_cur
+            seg = slice(s, e)
+            posb = self._doc_positions(doc[:, seg],
+                                       past_doc=doc[:, :s])
+            zero_init = ((doc[:, s] != doc[:, s - 1]) if s > 0
+                         else torch.zeros(B, dtype=torch.bool, device=dev))
+            h_noisy.append(self._noisy_block_layers_shifted(
+                h_emb_xt[:, seg], posb, snap_g, snap_kv, doc[:, seg],
+                doc, zero_init))
+            starts.append(s)
+            pos_c = self._doc_positions(doc[:, cur:e],
+                                        past_doc=doc[:, :cur])
+            h_seg, g_cur, kv_cur = self._clean_layers(
+                h_emb_x0[:, cur:e], pos_c, g_cur, kv_cur, doc[:, cur:e],
+                reset_rows=None)
+            h_x0[:, cur:e] = h_seg
+            cur = e
+        if h_noisy:
+            h_noisy = torch.stack(h_noisy, dim=1)
+        else:
+            h_noisy = torch.zeros(B, 0, Bb, h_emb_xt.shape[-1],
+                                  device=dev, dtype=h_emb_xt.dtype)
+        return h_x0, h_noisy, starts
+
+    def _noisy_block_layers_shifted(self, hb, posb, snap_g, snap_kv, doc_b,
+                                    doc_full, zero_init):
+        """Un bloc `shifted` `[graine, MASK×]` : graine causale (GDN mode 2,
+        `num_clean=1`), autres lignes bidirectionnelles + passé propre
+        complet, sans écriture. Réplique exacte du flag serving
+        (`_set_denoise_flags` : causal_mode=2, num_clean=1, masque
+        graine-causale) — cf. `denoise_block_shifted` (inférence)."""
+        B, Bb, _ = hb.shape
+        dev = hb.device
+        # `doc_b` couvre le segment [s-1, e) (graine incluse, Bb positions,
+        # contrat mono-document : même doc sur tout le segment).
+        doc_blk = doc_b
+        h = hb
+        gi = ai = 0
+        for entry in self.layers:
+            kind, mod = entry["kind"], entry["mod"]
+            hn = mod.input_layernorm(h)
+            if kind == "attn":
+                past = snap_kv[ai] if ai < len(snap_kv) else None
+                kp, vp, dp = (past if past is not None else (None, None, None))
+                klen = kp.shape[1] if kp is not None else 0
+                allow_past = None
+                if kp is not None:
+                    if dp is not None:
+                        allow_past = (doc_blk[:, :, None] == dp[:, None, :])
+                    else:
+                        allow_past = torch.ones(B, Bb, klen, dtype=torch.bool,
+                                                device=dev)
+                    if bool(zero_init.any()):
+                        cut = zero_init[:, None, None].expand_as(allow_past)
+                        allow_past = torch.where(
+                            cut, torch.zeros_like(allow_past), allow_past)
+                allow_blk = self._serving_denoise_block_mask(Bb, doc_blk, dev)
+                allow_blk = allow_blk.expand(B, -1, -1)
+                allow = (torch.cat([allow_past, allow_blk], dim=2)
+                         if allow_past is not None else allow_blk)
+                out, _, _ = self._attn_block(mod.self_attn, hn, posb,
+                                             kp, vp, allow)
+                h = h + out
+                ai += 1
+            else:
+                cell = entry["cell"]
+                st = snap_g[gi]
+                S_init = st.S.clone()
+                C_init = st.conv.clone()
+                if bool(zero_init.any()):
+                    cut_s = zero_init[:, None, None, None].expand_as(S_init)
+                    S_init = torch.where(cut_s, torch.zeros_like(S_init),
+                                         S_init)
+                    cut_c = zero_init[:, None, None].expand_as(C_init)
+                    C_init = torch.where(cut_c, torch.zeros_like(C_init),
+                                         C_init)
+                out, _ = cell.forward_noisy_block(
+                    hn, S_init, C_init, read_mode=2, num_clean=1)
                 h = h + out
                 gi += 1
             h = h + mod.mlp(mod.post_attention_layernorm(h))

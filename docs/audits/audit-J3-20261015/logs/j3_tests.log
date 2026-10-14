@@ -1,0 +1,19 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.15, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\sjteb\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+rootdir: D:\Intelligence_Artificielle\Projects\Jainius
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collecting ... collected 9 items
+
+tests/numerical/test_j3_shifted.py::test_shifted_supervision_layout_cpu PASSED [ 11%]
+tests/numerical/test_j3_shifted.py::test_shifted_supervision_tail_ignored_cpu PASSED [ 22%]
+tests/numerical/test_j3_shifted.py::test_shifted_supervision_refusals_cpu PASSED [ 33%]
+tests/numerical/test_j3_shifted.py::test_rollout_shifted_static_exact PASSED [ 44%]
+tests/numerical/test_j3_shifted.py::test_rollout_shifted_deterministic PASSED [ 55%]
+tests/numerical/test_j3_shifted.py::test_rollout_shifted_dynamic_runs PASSED [ 66%]
+tests/numerical/test_j3_shifted.py::test_forward_train_shifted_shapes_and_grad PASSED [ 77%]
+tests/numerical/test_j3_shifted.py::test_train_step_shifted_finite_frozen_teacher PASSED [ 88%]
+tests/numerical/test_j3_shifted.py::test_j3_loop_ckpt_resume PASSED      [100%]
+
+============================= 9 passed in 38.98s ==============================
