@@ -406,6 +406,86 @@ def train_step_shifted(hf_model, teacher, optim, prompt_ids_list, trajs,
     return float(loss.item())
 
 
+def train_step_shifted_batched(hf_model, teacher, optim, prompt_ids_list,
+                               trajs, stats: dict | None = None, *,
+                               runner, block_size: int,
+                               mask_id: int) -> float:
+    """Pas J4 : même mathématique que `train_step_shifted`, un seul forward
+    batché (J4 : débit). Exige des lignes homogènes : même longueur de
+    prompt P et même longueur de réponse R (multiple de Bb) — le pilote
+    bucketise les prompts par longueur exacte (pas de padding, voie
+    mono-document validée en J3 inchangée, B>1 natif du runner).
+    Même asserts (finitude, gel enseignant, mise à jour, clip 1.0).
+    """
+    Bb = int(block_size)
+    if Bb < 2:
+        raise ValueError(f"bloc shifted : Bb={Bb} < 2 (graine + masques)")
+    if runner is None:
+        raise ValueError("train_step_shifted exige runner=TwoStreamRunner")
+    Ps = {len(p) for p in prompt_ids_list}
+    Rs = {len(t.x0) for t in trajs}
+    if len(Ps) != 1 or len(Rs) != 1:
+        raise ValueError(f"lignes hétérogènes : P={sorted(Ps)}, R={sorted(Rs)}")
+    P, R = Ps.pop(), Rs.pop()
+    if R % Bb:
+        raise ValueError(f"R={R} non multiple de Bb={Bb} (pilote J4)")
+    B = len(prompt_ids_list)
+    device = next(hf_model.parameters()).device
+    optim.zero_grad()
+    L = P + R
+    x0 = torch.tensor([p + t.x0 for p, t in zip(prompt_ids_list, trajs)],
+                      dtype=torch.long, device=device)
+    sup1d = shifted_supervision_mask(L, P, Bb)
+    nb = int(sup1d.sum().item()) // (Bb - 1)
+    assert nb * Bb == R, (nb, Bb, R)
+    xt = x0.clone()
+    xt[:, sup1d.to(device)] = mask_id
+    _, h_noisy, starts = runner.forward_train_shifted(
+        x0, xt, block_size=Bb, resp_start=P)
+    assert list(starts) == [P + j * Bb for j in range(nb)], starts
+    h_comp = h_noisy.reshape(B, nb * Bb, -1)
+    sup_comp = torch.zeros(B, nb * Bb, dtype=torch.bool, device=device)
+    for k in range(nb):
+        sup_comp[:, k * Bb + 1: (k + 1) * Bb] = True
+    with torch.no_grad():
+        t_full = compute_teacher_targets_shifted(
+            x0,
+            lambda ids: teacher.model(
+                ids, output_hidden_states=True).hidden_states[-1],
+            teacher.model.lm_head,
+        )
+    t_comp = torch.zeros(B, nb * Bb, t_full.shape[-1],
+                         dtype=t_full.dtype, device=device)
+    for k, s in enumerate(starts):
+        t_comp[:, k * Bb: (k + 1) * Bb] = t_full[:, s: s + Bb]
+    out = kl_teacher_to_student(
+        runner.final_norm(h_comp), lambda h: runner.lm_head(h),
+        None, None, sup_comp, chunk_tokens=1024,
+        teacher_logits=t_comp.reshape(-1, t_comp.shape[-1]),
+    )
+    assert out.n_supervised == B * nb * (Bb - 1), (
+        out.n_supervised, B, nb, Bb)
+    loss = out.loss
+    assert torch.isfinite(loss).all(), "perte non finie"
+    loss.backward()
+    assert all(
+        p.grad is None or bool(torch.isfinite(p.grad).all())
+        for p in hf_model.parameters()
+    ), "gradients non finis"
+    assert all(
+        p.grad is None
+        for p in teacher.model.parameters()
+    ), "l'enseignant a reçu des gradients (contrat gelé violé)"
+    params = [p for p in hf_model.parameters() if p.grad is not None]
+    assert params, "aucun gradient côté étudiant"
+    grad_norm = float(torch.nn.utils.clip_grad_norm_(params, 1.0).item())
+    if stats is not None:
+        stats["grad_norm"] = grad_norm
+        stats["n_supervised"] = out.n_supervised
+    optim.step()
+    return float(loss.item())
+
+
 @dataclass
 class DistillConfig:
     """Boucle J3 : distillation on-policy Diffusion-Trust `shifted`."""

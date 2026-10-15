@@ -115,3 +115,44 @@ avant/après chaque série, journaux serveurs, JSON bruts).
   C=1 : 66,7 tok/s diffusion vs 189,9 AR (0,35×, tpf ≈ 1,04 sur réponses
   courtes — G5 ≥ 2× non atteint dans ce régime) ; 0,8B source chargé et
   correct dans le fork. Conteneurs J1 supprimés, images amont intactes.
+
+## 9. Gouvernance mémoire GPU — Windows/WDDM (2026-10-14, pilote J4)
+
+Constat : sous Windows, le pilote WDDM **pagine silencieusement vers la
+RAM partagée** quand la VRAM est pleine, au lieu de lever une OOM franche
+(comme sur Linux). Symptôme observé : `train_s` ×2 à R constant, sans
+erreur, VRAM à 98,5 % avec un besoin en tenseurs ~16–18 Go sur 32 Go.
+`nvidia-smi` affiche le **réservé** (cache allocateur + fragmentation),
+pas l'**alloué** — les deux doivent être distingués.
+
+Règles (applicables à tout run d'entraînement local) :
+- **Mesurer avant d'optimiser** : logger par pas `memory_allocated`,
+  `memory_reserved`, `max_memory_allocated` + phase ; aucun correctif
+  mémoire sans attribution du pic.
+- **Plafonner** : `torch.cuda.set_per_process_memory_fraction(~0,90)` —
+  l'échec devient franc (OOM Python) au lieu d'un ralentissement
+  insidieux par pagination.
+- **Défragmenter** : `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` ;
+  `empty_cache()` aux points connus (après chaque `save_ckpt`), pas à
+  chaque pas.
+- **Baisser le pic sous le plafond** : enseignant en micro-lignes ou sur
+  CPU, checkpointing d'activations (DECISIONS C.2), sérialisation côté CPU.
+- Le contrôle d'admission **par taille de prompt** n'est pas le levier
+  pertinent en entraînement (un prompt = des Ko face à des Go d'états) ;
+  il se justifie côté serving/évaluation (budget KV-cache, J5).
+
+## 10. Stabilité des runs longs — reboots Windows (2026-10-14)
+
+- 07:29 + 07:32 : reboots initiés par Windows Update (MoUsoCoreWorker,
+  TrustedInstaller) → mort du pilote initial à 353/700. 15:03 : reboot
+  initié via StartMenu (utilisateur) → fin de session.
+- Règle : avant tout run de plus d'1 h, vérifier qu'aucun reboot n'est
+  programmé et mettre Windows Update en pause (Paramètres → Windows
+  Update → Suspendre). Un reboot tue processus + contexte CUDA sans
+  laisser de trace dans les logs applicatifs — diagnostic via
+  `Get-WinEvent` (System : 1074, 6006, 6005), jamais de mise en veille
+  constatée (aucun événement 42/107 le 2026-10-14).
+- Morts sans reboot ni trace (stall pilote à 475, eval complète) :
+  cause non établie ; parade = jobs sans `timeout`, découpage par étape
+  avec résultats persistés, contrôle vivant (processus + VRAM +
+  horodatage du log, jamais le log seul).
