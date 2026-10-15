@@ -122,6 +122,9 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--ckpt-every", type=int, default=50)
     ap.add_argument("--response-len", type=int, default=64)
+    ap.add_argument("--pair-offset", type=int, default=0,
+                    help="décale l'index des paires (reprise : ne pas rejouer "
+                         "les paires déjà vues, ex. 200 pour globals 900+)")
     args = ap.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -159,8 +162,10 @@ def main() -> int:
         mem_gov=mem_gov, fp=param_fingerprint(student)[:12])
 
     runner = TwoStreamRunner(student)
-    _, pairs = load_format_pairs(args.seed, args.steps)
-    assert len(pairs) >= args.steps, f"paires insuffisantes : {len(pairs)}"
+    _, pairs = load_format_pairs(args.seed, args.pair_offset + args.steps)
+    assert len(pairs) >= args.pair_offset + args.steps, (
+        f"paires insuffisantes : {len(pairs)}")
+    pairs = pairs[args.pair_offset:]
     config = {"pilot": "J4-bis", "shifted": True, "seed": args.seed,
               "lr_peak": LR_PEAK, "lr_end": LR_END, "warmup": WARMUP,
               "batch": BATCH, "block_size": BB, "ptrunc": PTRUNC,

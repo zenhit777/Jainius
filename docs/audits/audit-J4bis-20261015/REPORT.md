@@ -69,3 +69,15 @@ formatés, gouvernance mémoire, pilote lancé avec chaîne d'évaluation
 identique à J4 (comparaison ckpt-local vs J4-local sans biais moteur).
 Prochaine étape : à la fin du run, comparer `eval_j4b.json` à J4 (0,1213)
 et B0 (0,3376) ; si palier 1 → J5, sinon analyser l'écart résiduel.
+
+## 6. Incident 16/10 ~01h40 : serveur relance, reprise depuis step_000899
+
+- Fait etabli : le shell de fond a ete annule (redemarrage serveur), le
+  processus python avec lui (aucun python actif, GPU libre, pas de checkpoint
+  d urgence : kill sans exception). Dernier etat sain : step_000899 (19h31) ;
+  pas 900-932 recalcules (deterministes : paires + seeds de rollout).
+- Les 2 reboots Windows du 15/10 (13h14 utilisateur, 13h52 winlogon) sont
+  ANTERIEURS au run (18h39+) : non lies a cet incident.
+- Reprise : --from-ckpt step_000899 --steps 100 --pair-offset 200 (globals
+  900-999, pas de rejeu des paires), meme seed/R/ckpt-every. Correctif
+  --pair-offset trace dans pilot_j4b.py (commit suivant).
