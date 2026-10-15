@@ -43,6 +43,10 @@ from jainius.train.loop import (  # noqa: E402
     train_step_shifted_batched,
 )
 from jainius.train.master import MasterOptimizer  # noqa: E402
+from jainius.train.remediation import (  # noqa: E402
+    merge_budgets,
+    should_final_save,
+)
 
 MODEL_ID = "Qwen/Qwen3.5-0.8B"
 DATA = "_artefacts/data/opdlm_train_data/opdlm_train.json"
@@ -115,8 +119,9 @@ def main() -> int:
         logf.flush()
         print(json.dumps(kw), flush=True)
 
-    start_step, tom = 0, 0
+    start_step = 0
     resume_cfg = None
+    resume_budget: dict = {}
     student = AutoModelForCausalLM.from_pretrained(
         MODEL_ID, dtype=torch.bfloat16, device_map="cuda",
         trust_remote_code=False).train()
@@ -138,7 +143,7 @@ def main() -> int:
         manifest = load_ckpt(d, student, optim.optim, config,
                              masters=optim.masters)
         start_step = manifest["step"] + 1
-        tom = manifest["budget"].get("tokens_response", 0)
+        resume_budget = dict(manifest.get("budget", {}))
         pairs = pairs[start_step:]
         pair_domains = pair_domains[start_step:]
         log(event="resume", from_step=manifest["step"],
@@ -159,9 +164,14 @@ def main() -> int:
         log(event="ckpt", dir=str(d))
         return d
 
-    tokens_sup = tokens_seq = 0
-    updates = 0
+    _c = merge_budgets(resume_budget)  # cumulatifs (corrige remise à zéro J4)
+    tom = _c["tokens_response"]
+    tokens_sup = _c["tokens_supervised"]
+    tokens_seq = _c["tokens_seq"]
+    updates = _c["updates"]
     step = start_step - 1
+    last_saved: int | None = (resume_budget.get("curriculum_step")
+                              if args.resume else None)
     try:
         for k in range(start_step, args.steps):
             step = k
@@ -195,7 +205,12 @@ def main() -> int:
                 tokens_response=tom)
             if (step + 1) % args.ckpt_every == 0:
                 save(step, tom, tokens_sup, tokens_seq, updates)
-        last = save(args.steps - 1, tom, tokens_sup, tokens_seq, updates)
+                last_saved = step
+        # Finale conditionnelle (corrige FileExistsError J4 si steps % every == 0).
+        if should_final_save(last_saved, args.steps - 1):
+            last = save(args.steps - 1, tom, tokens_sup, tokens_seq, updates)
+        else:
+            last = out / f"step_{args.steps - 1:06d}"
         log(event="done", ckpt=str(last), tokens_response=tom,
             tokens_supervised=tokens_sup, tokens_seq=tokens_seq,
             fp=param_fingerprint(student)[:12])

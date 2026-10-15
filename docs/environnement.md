@@ -142,7 +142,6 @@ Règles (applicables à tout run d'entraînement local) :
   il se justifie côté serving/évaluation (budget KV-cache, J5).
 
 ## 10. Stabilité des runs longs — reboots Windows (2026-10-14)
-
 - 07:29 + 07:32 : reboots initiés par Windows Update (MoUsoCoreWorker,
   TrustedInstaller) → mort du pilote initial à 353/700. 15:03 : reboot
   initié via StartMenu (utilisateur) → fin de session.
@@ -156,3 +155,12 @@ Règles (applicables à tout run d'entraînement local) :
   cause non établie ; parade = jobs sans `timeout`, découpage par étape
   avec résultats persistés, contrôle vivant (processus + VRAM +
   horodatage du log, jamais le log seul).
+
+## 11. J4-bis (2026-10-15) — pile inchangee, rebuild WSL en prerequis J5
+
+- Phase 2 tourne sur la pile Windows J4 (torch 2.11.0+cu128, transformers
+  5.17.0, fallbacks de reference) : comparabilite J4 -> J4-bis stricte.
+- Sonde WSL bornee : causal_conv1d = sdist only (compilation CUDA requise),
+  flash-linear-attention 0.5.2 = wheel pure-Python ; flare-oracle en
+  transformers 4.57.1 (trop vieux pour qwen3_5). Rebuild complet + validation
+  numerique = prerequis J5, jamais pendant une mesure.
