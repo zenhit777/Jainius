@@ -113,3 +113,18 @@ et B0 (0,3376) ; si palier 1 → J5, sinon analyser l'écart résiduel.
   effet persiste au-dela du calcul perdu). Reprise depuis 952 :
   --pair-offset 250 --steps 47 (globals 953-999, 2 repetitions
   documentees base[277..278], negligeables).
+
+## 9. OOM confirme sur prompts longs ; evaluation du ckpt 979 (279 updates)
+
+- Fait etabli : 3e OOM (12 Mio, 28,42 Go alloues) vers step 980 = paire
+  base[277] (la plus longue). Le reorder ne suffit pas : le transitoire
+  backward etudiant B=2 L~256 depasse seul le plafond. Motif stable sur
+  3 incidents : prompts les plus longs en fin de curriculum trie.
+- Decision : echec franc accepte (plafond 90 % a joue son role), queue
+  de 20 pas abandonnee. Le ckpt 979 (279 updates phase 2, budgets
+  ~119k tokens reponse) est un resultat de pilote exploitable : les
+  paliers se jugent sur la mesure, pas sur 300 pile.
+- Evaluation lancee sur step_000979 (6 datasets, sans IFEval) + pytest.
+  Travail memoire restant (micro-batch exact ou checkpointing
+  d activations C.2) renvoye en prerequis J5 : l entrainement actuel
+  ne passe plus les prompts >= ~180 tokens sous ce plafond.
