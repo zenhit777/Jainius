@@ -138,3 +138,19 @@ et B0 (0,3376) ; si palier 1 → J5, sinon analyser l'écart résiduel.
 - Parade : eval par dataset (6 fichiers indep., sans porte &&) +
   scripts/aggr_eval.py (meme formule composite que local_runner).
   Chaine relancee en fond : 6 evals -> agregation -> pytest.
+
+## 11. Decisions Q1/Q2 + eval 979 relancee sur GPU libre (16/10 ~23h30)
+
+- D-09 (G5 : minimal ≥ 2×, objectif ≥ 3×) et D-10 (bloc 4, puis 8/16)
+  validees par l'utilisateur, inscrites en DECISIONS.md (commit bd755d2).
+- Chaine aggr_eval.py validee sur CPU : reagregation des 6 evals J4
+  existantes -> composite sans IFEval 0,1213 a l'identique.
+- GPU libere par l'utilisateur (llama-server/LM Studio quitte) : 1209 Mio
+  utilises, aucun process compute (`check_env_eval979.log` archive).
+  Test foreground `--limit 4` gsm8k sur ckpt 979 : EXIT 0, 87 s,
+  score 0,0 — sorties degenerees repetitives confirmées sur GPU
+  (`diag_gpu979.json` : boucles "1.1.1.1…", jamais `####`).
+- Chaine complete relancee en fond (`run_eval_split.ps1`, shell
+  sh_146a456ad0016ynfD5YrmEwJgx) : 6 evals -> agregation -> pytest.
+  Verdict palier 1 (0,2363) a la fin du run : si atteint -> J5, sinon
+  analyse de l'ecart residuel (4 lignes non conclusives).
