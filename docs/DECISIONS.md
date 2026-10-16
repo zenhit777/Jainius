@@ -17,6 +17,8 @@ Statuts : **VERROUILLÉE** (dite par l'utilisateur) · **PAR DÉFAUT** (recomman
 | **D-06** | Débit **comparable à DiffusionGemma**, défini en accélération par rapport au modèle source servi en autorégressif (PRD §4). | A-006 seul (≥ 1,5×) |
 | **D-07** | Les STM 1, 4, 5, 6, 7 sont **hors périmètre**. d-OPD peut être étudié après J4, uniquement sur une mesure. | cahier technique §10.9 |
 | **D-08** | Modèle de développement : **Qwen3.5-0.8B**. Qwen3-0.6B reste un banc d'essai auxiliaire. Matériel : RTX 5090 32 Go, WSL2, Docker (voir `docs/environnement.md`). | — |
+| **D-09** | Seuils de débit G5 **validés** (2026-10-16, utilisateur) : minimal **≥ 2×**, objectif **≥ 3×** en tokens/s par utilisateur vs B0-plain, même protocole (PRD §4). | Q1 |
+| **D-10** | Taille de bloc de départ **4** (éprouvée par FLARE), puis essai 8 et 16 après J4 avec mesure tokens/passe, rétention et débit (2026-10-16, utilisateur). | Q2 |
 
 ## B. Décisions antérieures conservées
 
@@ -38,9 +40,6 @@ Statuts : **VERROUILLÉE** (dite par l'utilisateur) · **PAR DÉFAUT** (recomman
 | 6 | Prérequis serving (lecture de l'état GDN : mode 0, 1 ou 2) | **Remplacé par le jalon J2** : on ne choisit pas un mode, on prouve la parité avec le serving **natif** du fork (mode 2 puis 1) sur un checkpoint FLARE publié | Le fork est la cible (D-04) : c'est à notre forward de s'y conformer. |
 | 7 | `L_max` = 512 ? | **512 pour le pilote**, tant que le checkpointing n'est pas implémenté ; relever ensuite | Mesuré : 1024 → mémoire insuffisante. |
 
-## D. Questions réellement ouvertes (l'utilisateur doit répondre)
+## D. Questions réellement ouvertes — aucune (2026-10-16)
 
-| # | Question | Recommandation |
-|---|---|---|
-| Q1 | Valider les seuils de débit G5 : minimal ≥ 2×, objectif ≥ 3× (PRD §4) | Valider |
-| Q2 | Taille de bloc de départ | 4 (éprouvée par FLARE), puis essayer 8 et 16 après J4 |
+Q1 (seuils G5) et Q2 (bloc 4) validées par l'utilisateur, inscrites en D-09 et D-10.
