@@ -128,3 +128,13 @@ et B0 (0,3376) ; si palier 1 → J5, sinon analyser l'écart résiduel.
   Travail memoire restant (micro-batch exact ou checkpointing
   d activations C.2) renvoye en prerequis J5 : l entrainement actuel
   ne passe plus les prompts >= ~180 tokens sous ce plafond.
+
+## 10. Eval monolithe tuee sans trace ; relance par dataset (16/10)
+
+- Fait etabli : l eval monolithe est morte apres chargement des poids,
+  sans traceback ni reboot (mort sans trace, cf. environnement §10).
+  Diagnostic foreground --limit 4 : EXIT 0 en 74 s -> pas un bug,
+  un kill externe ( meme motif que le run pilote).
+- Parade : eval par dataset (6 fichiers indep., sans porte &&) +
+  scripts/aggr_eval.py (meme formule composite que local_runner).
+  Chaine relancee en fond : 6 evals -> agregation -> pytest.
