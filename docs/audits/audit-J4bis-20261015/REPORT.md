@@ -154,3 +154,17 @@ et B0 (0,3376) ; si palier 1 → J5, sinon analyser l'écart résiduel.
   sh_146a456ad0016ynfD5YrmEwJgx) : 6 evals -> agregation -> pytest.
   Verdict palier 1 (0,2363) a la fin du run : si atteint -> J5, sinon
   analyse de l'ecart residuel (4 lignes non conclusives).
+
+## 12. Chaine fond tuee en 18 s (3e mort sans trace) ; relance detachee (17/10 ~01h05)
+
+- Fait etabli : `night.log` fige a 23:35:56 (poids 100 % + fallbacks,
+  aucun traceback, aucun `eval_j4b_*.json`), aucun python/powershell
+  actif au controle. Pas de reboot ni de veille (journal System vide
+  sur 8-12 h), GPU libre (1365 Mio). Meme signature que les 2 morts
+  precedentes, mais le test foreground identique (meme ckpt, 2 min
+  avant) sortait 0 : la taille du dataset est hors cause (mort avant
+  toute generation), OOM improbable (1,6 Go de poids sur 32 Go libres).
+  Cause non etablie.
+- Parade : relance DETACHEE via `Start-Process` (survit a la session
+  agent, en-tete horodate dans `night.log`) : python PID 35580, GPU
+  24 % / 5,5 Go a +45 s — fenetre des 18 s depassee en generation.
