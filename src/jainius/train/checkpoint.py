@@ -106,7 +106,11 @@ def save_ckpt(directory: str | Path, model, optim, rng_state: torch.Tensor,
         torch.save(model.state_dict(), tmp / "model.pt")
         torch.save(optim.state_dict(), tmp / "optim.pt")
         if masters is not None:
-            torch.save([m.detach().clone() for m in masters], tmp / "master.pt")
+            # J4-bis : SANS clone — torch.save sérialise vers CPU de toute
+            # façon ; le clone (+)3,2 Go CUDA faisait OOM la sauvegarde
+            # sous plafond 90 % (incident 16/10, step ~977). detach suffit
+            # (données identiques, roundtrip vérifié par test_ckpt_*).
+            torch.save([m.detach() for m in masters], tmp / "master.pt")
         torch.save(rng_state, tmp / "rng_cpu.pt")
         if rng_cuda is not None:
             torch.save(rng_cuda, tmp / "rng_cuda.pt")

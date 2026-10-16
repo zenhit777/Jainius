@@ -81,3 +81,18 @@ et B0 (0,3376) ; si palier 1 → J5, sinon analyser l'écart résiduel.
 - Reprise : --from-ckpt step_000899 --steps 100 --pair-offset 200 (globals
   900-999, pas de rejeu des paires), meme seed/R/ckpt-every. Correctif
   --pair-offset trace dans pilot_j4b.py (commit suivant).
+
+## 7. Incident 16/10 ~02h : double OOM CUDA, cause et correctif
+
+- Fait etabli : ckpt step_000949 OK (01h58) ; puis OOM (12 Mio) dans le
+  backward vers step 977 (fragmentation : 2,17 Gio libres mais non
+  contigus), puis OOM (970 Mio) dans la sauvegarde d urgence.
+  Dernier pas valide : 976. Pas d eval, pas de pytest.
+- Cause : transitoire +3,2 Go de [m.detach().clone() for m in masters]
+  dans save_ckpt + absence de purge (J4 survivait par pagination WDDM ;
+  le plafond 90 % rend l echec franc, comme prevu au §9).
+- Correctif : sauvegarde des maitres SANS clone (detach suffit, roundtrip
+  couvert par test_ckpt_*), empty_cache() avant/apres chaque save et tous
+  les 10 pas. Valide : 13 tests passent (dont roundtrip GPU avec maitres).
+- Reprise : --from-ckpt step_000949 --steps 23 --pair-offset 277 (globals
+  977-999, paires 277-299, sans rejeu ni trou).

@@ -182,6 +182,9 @@ def main() -> int:
     last_saved = manifest["step"]
 
     def save(gstep):
+        # J4-bis : vider le cache AVANT (défragmente avant le transitoire
+        # de sauvegarde) comme après (incident OOM 16/10).
+        torch.cuda.empty_cache()
         rng_cuda = (torch.cuda.get_rng_state_all()
                     if torch.cuda.is_available() else None)
         d = save_ckpt(out, student, optim.optim, torch.get_rng_state(),
@@ -219,6 +222,10 @@ def main() -> int:
             counters["tokens_response"] += 2 * R
             counters["tokens_supervised"] += stats["n_supervised"]
             counters["tokens_seq"] += 2 * (len(p1) + R)
+            # J4-bis : purge périodique (transitoire backward fragmenté ;
+            # incident OOM 16/10). Coût négligeable devant ~16 s/pas.
+            if k % 10 == 0:
+                torch.cuda.empty_cache()
             log(event="step", step=gstep, phase_step=k, R=R,
                 lr=f"{lr:.2e}", loss=round(loss, 4),
                 grad=round(stats["grad_norm"], 4),
