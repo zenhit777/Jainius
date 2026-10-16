@@ -96,3 +96,20 @@ et B0 (0,3376) ; si palier 1 → J5, sinon analyser l'écart résiduel.
   les 10 pas. Valide : 13 tests passent (dont roundtrip GPU avec maitres).
 - Reprise : --from-ckpt step_000949 --steps 23 --pair-offset 277 (globals
   977-999, paires 277-299, sans rejeu ni trou).
+
+## 8. Correction 16/10 : pas de fuite, pic transitoire ; erreur d offset rattrapee
+
+- Sonde GPU : rollouts seuls stables (5,97 Go), pas complets stables a
+  15,81 Go (P court). Pas de fuite : le run vit a ~99 % du plafond 90 %
+  et les prompts les plus longs (paires triees croissantes) font
+  deborder le transitoire backward. J4 ne survivait que par pagination.
+- Correctif : cibles enseignant calculees AVANT le forward etudiant
+  (pic = max au lieu de la somme, ~plusieurs Go gagnes ; seul t_full
+  fp32 ~0,3 Go survit). Reordonancement seul, valeurs bit-identiques :
+  suite numerique complete verte (71 passes, 2 ignores, 1 xfail).
+- Comptabilite paires (seed 1) : persiste base[0..249] + [277..278]
+  (urgence 952). Le runmort a consomme base[277..278] pour globals
+  950-951 (la note du §7 annoncait a tort 977-999 : corrige ici, sans
+  effet persiste au-dela du calcul perdu). Reprise depuis 952 :
+  --pair-offset 250 --steps 47 (globals 953-999, 2 repetitions
+  documentees base[277..278], negligeables).

@@ -435,6 +435,17 @@ def train_step_shifted_batched(hf_model, teacher, optim, prompt_ids_list,
     L = P + R
     x0 = torch.tensor([p + t.x0 for p, t in zip(prompt_ids_list, trajs)],
                       dtype=torch.long, device=device)
+    # J4-bis : cibles enseignant D'ABORD (pic = max(transitoire enseignant,
+    # graphe étudiant) au lieu de la somme ; mathématiquement identique —
+    # l'enseignant ne dépend pas de l'étudiant). Seul t_full fp32 (~0,3 Go)
+    # survit au forward étudiant. Incident OOM 16/10.
+    with torch.no_grad():
+        t_full = compute_teacher_targets_shifted(
+            x0,
+            lambda ids: teacher.model(
+                ids, output_hidden_states=True).hidden_states[-1],
+            teacher.model.lm_head,
+        )
     sup1d = shifted_supervision_mask(L, P, Bb)
     nb = int(sup1d.sum().item()) // (Bb - 1)
     assert nb * Bb == R, (nb, Bb, R)
@@ -447,13 +458,6 @@ def train_step_shifted_batched(hf_model, teacher, optim, prompt_ids_list,
     sup_comp = torch.zeros(B, nb * Bb, dtype=torch.bool, device=device)
     for k in range(nb):
         sup_comp[:, k * Bb + 1: (k + 1) * Bb] = True
-    with torch.no_grad():
-        t_full = compute_teacher_targets_shifted(
-            x0,
-            lambda ids: teacher.model(
-                ids, output_hidden_states=True).hidden_states[-1],
-            teacher.model.lm_head,
-        )
     t_comp = torch.zeros(B, nb * Bb, t_full.shape[-1],
                          dtype=t_full.dtype, device=device)
     for k, s in enumerate(starts):
