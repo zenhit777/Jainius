@@ -168,3 +168,25 @@ et B0 (0,3376) ; si palier 1 → J5, sinon analyser l'écart résiduel.
 - Parade : relance DETACHEE via `Start-Process` (survit a la session
   agent, en-tete horodate dans `night.log`) : python PID 35580, GPU
   24 % / 5,5 Go a +45 s — fenetre des 18 s depassee en generation.
+
+## 13. Correctif structurel : chaine supervisee hors serveur d'agent (17/10 ~01h25)
+
+- Cause identifiee des 4 morts sans trace : processus enfants du shell de
+  l'agent, tues avec lui (redemarrages serveur — cf. §6 ; meme signature
+  pour les autres, aucune trace OS). Le run relance a 01h04
+  (`Start-Process`, python 35580) etait sain a 01h18 (CPU 821 s, GPU
+  actif) mais restait dans l'arbre du shell : remplace par precaution.
+- Correctif : `scripts/run_eval_chain.ps1` lance par la tache planifiee
+  Windows `Jainius-EvalJ4bis` — totalement detachee du serveur d'agent
+  (chaine parente verifiee : python -> powershell -> svchost/services ->
+  wininit). Heartbeat 60 s (PID + GPU + dataset), idempotence par dataset
+  (JSON valide saute), faulthandler, stdout/stderr par tentative,
+  post-mortem evenements Windows, RestartCount 10 x 5 min, reprise au
+  logon, duree illimitee. Dry-run valide avant deploiement.
+- Verifications 01h25-01h30 : tache Running, python 43548 (gsm8k), GPU
+  ~7,6 Go / 22-24 %, heartbeat regulier, `chain.log` alimente.
+- L'ancien run (01h04) a ete arrete volontairement pour basculer sur la
+  chaine supervisee ; gsm8k relance de zero (~20 min perdues, aucun
+  dataset n'avait abouti).
+- Controle utilisateur : arret/reprise sans perte documentes
+  (`docs/environnement.md` §12) ; regle permanente `AGENTS.md` §11.1.

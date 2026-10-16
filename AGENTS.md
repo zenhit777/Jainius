@@ -264,6 +264,19 @@ L'utilisation de Qdrant, d'un moteur de serving ou d'une architecture RAG doit r
 
 Mesures de performance : exécuter `scripts/check_env.sh` avant chaque mesure et archiver sa sortie avec les résultats — une mesure de débit/latence n'est valable que sur GPU vérifié vide (aucun process compute).
 
+### 11.1 Runs longs — exécution détachée et supervisée (règle permanente, 2026-10-17)
+
+Constat (15–17/10/2026) : quatre traitements longs lancés depuis le shell de l'agent (pilote J4, évaluations J4-bis) sont morts sans trace — processus enfants tués avec le shell lors des redémarrages du serveur, aucun événement OS, GPU occupé sans résultat exploitable. Règle permanente :
+
+1. **Détachement obligatoire.** Tout traitement destiné à durer plus de ~5 minutes (évaluation, entraînement, benchmark, conversion) n'est jamais un processus enfant du shell de l'agent :
+   - Windows : tâche planifiée (`Register-ScheduledTask` / `schtasks`) — modèle `scripts/run_eval_chain.ps1`, tâche `Jainius-EvalJ4bis` ;
+   - WSL : `setsid` / `nohup` (ou service), jamais le shell interactif.
+2. **Heartbeat.** Le lanceur écrit un battement horodaté (≤ 60 s) avec PID, mémoire GPU et étape courante ; l'arrêt du battement date la mort (`docs/environnement.md` §12).
+3. **Idempotence.** La reprise saute toute étape dont le résultat existe et est valide : arrêt et relance ne perdent aucun résultat terminé (l'utilisateur peut récupérer le GPU à tout moment).
+4. **Traces obligatoires.** Journal principal, code de sortie par étape, stdout/stderr par étape, `faulthandler` Python, relevé des événements OS en fin de run.
+5. **Auto-reprise.** Échec → relance automatique (`RestartCount`) ; redémarrage machine → reprise au logon ; l'agent contrôle l'état (heartbeat + `Get-ScheduledTaskInfo`) au début de chaque session et avant toute relance.
+6. **Contrôle utilisateur.** Fournir à l'utilisateur les commandes d'arrêt/reprise sans perte au lancement du run (arrêt : `Disable-ScheduledTask` puis `Stop-ScheduledTask`).
+
 ## 12. Sécurité et opérations à risque
 
 Avant toute opération destructive ou difficilement réversible, l'agent doit identifier précisément les fichiers, données, services ou ressources affectés.

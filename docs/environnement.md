@@ -164,3 +164,27 @@ Règles (applicables à tout run d'entraînement local) :
   flash-linear-attention 0.5.2 = wheel pure-Python ; flare-oracle en
   transformers 4.57.1 (trop vieux pour qwen3_5). Rebuild complet + validation
   numerique = prerequis J5, jamais pendant une mesure.
+
+## 12. Runs longs — supervision détachée par tâche planifiée (2026-10-17)
+
+- Cause des morts sans trace (15–17/10, quatre occurrences) : processus
+  enfants du shell de l'agent, tués avec lui aux redémarrages du serveur
+  (fait documenté dans l'audit J4-bis §6 : « le shell de fond a été annulé
+  (redémarrage serveur), le processus python avec lui »). Aucune trace OS
+  pour les autres morts (WER, Defender, Display/TDR, veille/reboot : vides) :
+  terminaison en cascade, pas un crash applicatif.
+- Correctif : tâche planifiée `Jainius-EvalJ4bis` (parent = Planificateur de
+  tâches, hors serveur d'agent) exécutant `scripts/run_eval_chain.ps1` :
+  heartbeat 60 s (PID + GPU + étape), idempotence (JSON valide = sauté),
+  faulthandler, stdout/stderr par étape, post-mortem événements OS,
+  `RestartCount` 10 × 5 min, redéclenchement au logon, durée illimitée.
+- Arrêter le run (rendre le GPU) :
+  `Disable-ScheduledTask -TaskName "Jainius-EvalJ4bis"` puis
+  `Stop-ScheduledTask -TaskName "Jainius-EvalJ4bis"` ; vérifier qu'aucun
+  python du run ne subsiste (`Get-Process python`), sinon l'arrêter.
+- Reprendre (saute les étapes déjà terminées) :
+  `Enable-ScheduledTask` puis `Start-ScheduledTask` (même nom de tâche).
+- Traces : `_artefacts/j4b/heartbeat.log` (preuve de vie), `chain.log`,
+  `run_<etape>_<ts>.log/.err`, `chain_state.json`, `events_chain_*.log`.
+- WSL : même exigence (`setsid`/`nohup`), à appliquer dès que le rebuild
+  WSL (prérequis J5, §11) est disponible ; la règle est dans AGENTS.md §11.1.
