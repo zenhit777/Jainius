@@ -225,13 +225,29 @@ et B0 (0,3376) ; si palier 1 → J5, sinon analyser l'écart résiduel.
   temps (moyenne par fenetres de 50 pas : 2,10 -> ~1,45-1,35 ; lr encore
   5,8e-06 au pas 978) : l'effondrement est qualitatif, invisible sur la
   courbe de perte du pilote.
-- Hypotheses (a tester, non etablies) : H1 redemarrage de lr 1e-5 trop
-  haut pour 279 updates -> attracteur repetitif ; H2 ecart train
-  (suffixes de format, sans role `system`) vs eval (consignes systeme),
-  deja present en J4 ; H3 R=64 constant. Discrimination prevue sans
-  nouvel entrainement : generation courte sur les ckpts intermediaires
-  phase 2 (749/799/849/899/949) pour dater l'apparition des boucles et
-  chercher un eventuel optimum intermediaire.
+- Fait etabli (log pilote + relecture du code) : le lr est re-rechauffe
+  a CHAQUE reprise. `pilot_j4b.py` (l.200-203) boucle `range(args.steps)`
+  avec `lr_schedule(k, args.steps)` : schedule local a l'invocation, donc
+  warmup 5 pas rejoue a chaque relance. Sequences 2 -> 10e-06 observees
+  aux pas 700, 900, 950 et 953. Les incidents (§6-9) ont decoupe la
+  phase 2 en 4 runs courts : AUCUN ckpt n'est anneale — lr au pas sauve :
+  9,51e-06 (749), 7,93e-06 (799), 5,67e-06 (849), 3,36e-06 (899),
+  6,02e-06 (949), 5,57e-06 (952), 5,84e-06 (978). En regard,
+  `pilot_j4.py` (l.176-179) reprend `range(start_step, args.steps)` sur
+  k GLOBAL : le schedule J4 est continu a travers ses reprises (300/400 —
+  verifie : 6,56e-06 et 4,54e-06 suivent la cosine de total 700) et
+  step_000699 est anneale a 1,00e-06. La comparaison J4/979 oppose donc
+  un ckpt en fin d'annealing a des ckpt pris en plein regime (~6-9e-06) :
+  l'ecart de protocole est etabli (distinct de l'effet des prompts).
+- Hypotheses (a tester, non etablies) : H1 (principale) la degradation
+  du 979 reflete des poids en milieu d'annealing (aucun ckpt anneale en
+  phase 2) ; H2 ecart train (suffixes de format, sans role `system`) vs
+  eval (consignes systeme), deja present en J4 ; H3 R=64 constant.
+  Discrimination sans nouvel entrainement : generation courte par ckpt
+  (749/799/849/899/949/952) — correlation boucles vs lr de sauvegarde
+  (899, le plus froid, doit etre le moins degenere si H1) ; puis, si H1
+  se confirme, reprise courte depuis le 979 avec schedule global continu
+  terminant a 1e-6 (paires courtes, marge OOM) avant re-evaluation.
 - Post-run : tache planifiee `Jainius-EvalJ4bis` desactivee (plus de
   relance au logon) ; reprise possible par `Enable-ScheduledTask` (les
   datasets valides seraient sautes, l'agregation/pytest seraient refaits).
