@@ -190,3 +190,48 @@ et B0 (0,3376) ; si palier 1 → J5, sinon analyser l'écart résiduel.
   dataset n'avait abouti).
 - Controle utilisateur : arret/reprise sans perte documentes
   (`docs/environnement.md` §12) ; regle permanente `AGENTS.md` §11.1.
+
+## 14. Resultats finaux du ckpt 979 : palier 1 non atteint (17/10)
+
+- Chaine supervisee (§13) terminee seule, sans aucune mort : 6/6 datasets
+  exit=0 (01h25:46 -> 08h30:46 ; gsm8k 3h23, math500 1h16, mmlu 1h08,
+  mmlu_pro 1h04, humaneval 4 min, mbpp 10 min), agregation exit=0, pytest
+  71 passed / 2 skipped / 1 xfailed (151 s). `LastTaskResult` 0 ;
+  heartbeat fige a 08h33:13 ; aucun python residuel ; GPU libre. Duree
+  totale 7h08. Premier run long de bout en bout depuis le 15/10 : le
+  detachement (AGENTS.md §11.1) a tenu.
+- Comparabilite stricte : protocole P-G/1.0, hash `8bd3da29` identique a
+  la re-agregation J4 ; T=0, 1 repetition ; moteur ckpt-local.
+- Scores (resultat mesure, `_artefacts/j4b/eval_j4b.json`) :
+
+  | dataset | J4 (699) | J4-bis (979) |
+  | --- | --- | --- |
+  | gsm8k | 0,0531 | 0,0106 |
+  | math500 | 0,0560 | 0,0140 |
+  | mmlu | 0,3188 | 0,2219 |
+  | mmlu_pro | 0,1267 | 0,0767 |
+  | humaneval | 0,0854 | 0,0305 |
+  | mbpp | 0,0880 | 0,0400 |
+  | composite sans IFEval | 0,1213 | **0,0656** |
+
+- Verdict : palier 1 (0,2363) NON atteint. Le 979 est inferieur a J4
+  (-0,0557) et a B0-plain (0,3376) sur les six datasets. J5 non demarre ;
+  palier 2 (0,3038) inchange.
+- Nature de l'ecart (fait etabli, echantillons d'eval) : J4 sortait des
+  reponses structurees mais sans marqueur final (`####`, lettre) ; le 979
+  degenere en boucles repetitives (`1.1.1.1…`, `0000…`, `2222…`, puces
+  vides, commentaires de code dupliques), motif retrouve sur les six
+  datasets y compris les QCM. La perte d'entrainement baissait pendant ce
+  temps (moyenne par fenetres de 50 pas : 2,10 -> ~1,45-1,35 ; lr encore
+  5,8e-06 au pas 978) : l'effondrement est qualitatif, invisible sur la
+  courbe de perte du pilote.
+- Hypotheses (a tester, non etablies) : H1 redemarrage de lr 1e-5 trop
+  haut pour 279 updates -> attracteur repetitif ; H2 ecart train
+  (suffixes de format, sans role `system`) vs eval (consignes systeme),
+  deja present en J4 ; H3 R=64 constant. Discrimination prevue sans
+  nouvel entrainement : generation courte sur les ckpts intermediaires
+  phase 2 (749/799/849/899/949) pour dater l'apparition des boucles et
+  chercher un eventuel optimum intermediaire.
+- Post-run : tache planifiee `Jainius-EvalJ4bis` desactivee (plus de
+  relance au logon) ; reprise possible par `Enable-ScheduledTask` (les
+  datasets valides seraient sautes, l'agregation/pytest seraient refaits).
