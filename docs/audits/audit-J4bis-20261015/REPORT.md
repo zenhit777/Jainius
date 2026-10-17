@@ -251,3 +251,49 @@ et B0 (0,3376) ; si palier 1 → J5, sinon analyser l'écart résiduel.
 - Post-run : tache planifiee `Jainius-EvalJ4bis` desactivee (plus de
   relance au logon) ; reprise possible par `Enable-ScheduledTask` (les
   datasets valides seraient sautes, l'agregation/pytest seraient refaits).
+
+## 15. Diagnostic des ckpts phase 2 : boucles vs avancement (17/10 12h09 -> 12h22)
+
+- Objet : trancher H1 (§14) — la degenerescence du 979 vient-elle d'un
+  sauvetage en plein regime (lr) ou d'une usure progressive pendant les
+  runs phase 2 ? Methode : `scripts/run_diag_j4b.ps1` (nouvelle tache
+  `Jainius-DiagJ4bis`, meme detachement/idempotence/heartbeat que §13) :
+  gsm8k `--limit 6`, T=0, protocole P-G/1.0, 8 ckpts (J4 699 + 7 phase 2),
+  un JSON par ckpt dans `_artefacts/j4b/diag/`. Duree 13 min, 8/8 exit=0,
+  aucun incident.
+- Resultat mesure (boucles = part des 200 premiers caracteres en
+  repetitions >= 4 d'un motif ; tete limitee a 200 car. par
+  `local_runner`) :
+
+  | ckpt | apres 699 | lr sauve | score (6) | tetes en boucle |
+  | --- | --- | --- | --- | --- |
+  | j4_699 (ref.) | 0 | 1,00e-06 | 0/6 | 0/6 |
+  | 749 | +50 pas | 9,51e-06 | 1/6 | 0/6 |
+  | 799 | +100 pas | 7,93e-06 | 0/6 | 0/6 |
+  | 849 | +150 pas | 5,67e-06 | 0/6 | 0/6 |
+  | 899 | +200 pas | 3,36e-06 | 0/6 | 2/6 |
+  | 949 | +250 pas | 6,02e-06 | 0/6 | 0/6 |
+  | 952 | +253 pas | 5,57e-06 | 0/6 | 1/6 |
+  | 979 | +280 pas | 5,84e-06 | 0/6 | 4/6 |
+
+- Lecture : les boucles ne suivent PAS le lr de sauvegarde (899, le plus
+  froid, deja touche sur 2 lignes ; 949 quasi indemne) ; elles culminent
+  au 979 (4/6, tetes remplies a ~80 % de repetitions). Signal faible
+  (6 lignes, tetes de 200 car., T=0) mais coherent avec l'eval complete
+  (979 < J4 partout). -> H1 « simple » (lr de sauvegarde) affaiblie ;
+  piste principale : degradation progressive pendant les updates de
+  phase 2, invisible dans la perte ; le re-rechauffage du lr (§14) reste
+  un ecart de protocole a corriger quoi qu'il en soit.
+- Limites : 6 lignes deterministes et tetes tronquees — pas de classement
+  fin des ckpts (la non-monotonie 899/949 doit se lire avec prudence) ;
+  une metrique non plafonnee (mmlu) sur plus de lignes serait requise
+  pour trancher quantitativement.
+- Suite proposee (non lancee) : test « annealing » — reprise courte
+  depuis le 979 avec le schedule GLOBAL d'origine (k = global - 700,
+  total 300 : lr ~1,1e-06 -> 1,0e-06), sauvegardee puis diagnostic
+  tetes + eval ciblee ; si les tetes restent en boucle, l'usure est
+  acquise et la remise en cause portera sur le regime (lr pic, duree,
+  donnees). Le tail de paires 277-296 (OOM au §9) est a eviter :
+  passer par des paires courtes, ecart documente.
+- Post-run : tache `Jainius-DiagJ4bis` desactivee (meme hygiene que §14).
+

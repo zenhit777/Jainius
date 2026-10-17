@@ -186,5 +186,11 @@ Règles (applicables à tout run d'entraînement local) :
   `Enable-ScheduledTask` puis `Start-ScheduledTask` (même nom de tâche).
 - Traces : `_artefacts/j4b/heartbeat.log` (preuve de vie), `chain.log`,
   `run_<etape>_<ts>.log/.err`, `chain_state.json`, `events_chain_*.log`.
+- Autres tâches supervisées : `Jainius-DiagJ4bis`
+  (`scripts/run_diag_j4b.ps1`, diagnostic court par ckpt — gsm8k
+  `--limit 6` —, sorties dans `_artefacts/j4b/diag/`) ; mêmes garanties
+  et mêmes commandes d'arrêt/reprise (remplacer le nom de la tâche) ;
+  désactivée après le run du 17/10, reprise = Enable + Start (les ckpts
+  déjà faits sont sautés).
 - WSL : même exigence (`setsid`/`nohup`), à appliquer dès que le rebuild
   WSL (prérequis J5, §11) est disponible ; la règle est dans AGENTS.md §11.1.
